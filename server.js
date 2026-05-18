@@ -230,103 +230,81 @@ const TASKS = {
     "Розкажи про Instagram від імені людини яка викладає тільки фото їжі але каже що це мистецтво"
   ],
   duel: [
-    "Хто краще опише вчорашній день як голлівудський бойовик",
-    "Хто переконає що їхній улюблений фільм найкращий у світі — без назви фільму",
-    "Хто смішніше поскаржиться на понеділок",
-    "Хто краще зіграє людину яка вперше бачить сніг",
-    "Хто переконає що їхня улюблена їжа — це ліки від всіх хвороб",
-    "Хто смішніше опише похід до лікаря",
-    "Хто краще зіграє диктора новин який розповідає про цю вечірку",
-    "Хто переконає що їхнє місто найкраще у світі — але тільки мінусами",
-    "Хто смішніше опише як застряг в ліфті",
-    "Хто краще зіграє вчителя який пояснює дітям що таке TikTok",
-    "Хто переконає що лінь — це суперсила",
-    "Хто смішніше опише свій перший день на новій роботі",
-    "Хто краще зіграє людину яка загубилась і не хоче просити допомоги",
-    "Хто переконає що їхній домашній улюбленець розумніший за всіх присутніх",
-    "Хто смішніше опише як намагається схуднути",
-    "Хто краще зіграє персонажа серіалу який дізнався жахливу новину",
-    "Хто переконає що прокрастинація — це стратегічне мислення",
-    "Хто смішніше опише стосунки з будильником",
-    "Хто краще зіграє людину яка робить вигляд що їй не боляче",
-    "Хто переконає що запізнення — це знак поваги бо ти готувався довше",
-    "Хто смішніше опише спробу приготувати щось вперше",
-    "Хто краще зіграє туриста який вперше приїхав в Україну",
-    "Хто переконає що сон до обіду — це продуктивна робота",
-    "Хто смішніше опише спробу зрозуміти інструкцію до техніки",
-    "Хто краще зіграє людину яка намагається тихо їсти чіпси",
-    "Хто переконає що їхня найбільша слабкість — це насправді сила",
-    "Хто смішніше опише спробу паркуватись",
-    "Хто краще зіграє людину яка чекає замовлення в ресторані вже годину",
-    "Хто переконає що їхній найгірший день був кращим ніж найкращий день іншого",
-    "Хто смішніше опише спробу зробити селфі з першого разу",
-    "Хто краще зіграє людину яка повернулась з відпустки і не відпочила",
-    "Хто переконає що читання меню це найскладніша наука",
-    "Хто смішніше опише спробу зателефонувати незнайомцю",
-    "Хто краще зіграє людину яка стоїть в черзі і вдає що їй норм",
-    "Хто переконає що їхній сон минулої ночі — це кіно гідне Оскара",
-    "Хто смішніше опише спробу знайти щось в сумці",
-    "Хто краще зіграє людину яка отримала несподіваний комплімент",
-    "Хто переконає що їхній підхід до прибирання — найефективніший у світі",
-    "Хто смішніше опише момент коли забув що хотів сказати",
-    "Хто краще зіграє людину яка намагається не розсміятись в серйозний момент",
-    "Хто переконає що нічого не робити — це найскладніша робота",
-    "Хто смішніше опише спробу прочитати нерозбірливий почерк",
-    "Хто краще зіграє людину яка вдає що розуміє жарт",
-    "Хто переконає що їхній спосіб їсти піцу — єдино правильний",
-    "Хто смішніше опише спробу не дивитись на телефон годину",
-    "Хто краще зіграє людину яка намагається пояснити мем бабусі",
-    "Хто переконає що їхнє місто має найкращу погоду — навіть якщо там завжди дощ",
-    "Хто смішніше опише момент коли прийшов не туди",
-    "Хто краще зіграє людину яка вдає що їй подобається подарунок",
-    "Хто переконає що їхній режим дня — це еталон ефективності",
-    "Хто смішніше опише спробу зібрати меблі з інструкцією",
-    "Хто краще зіграє людину яка застрягла на нудній вечірці",
-    "Хто переконає що забувати важливі речі — це ознака генія",
-    "Хто смішніше опише перший раз коли навчався водити",
-    "Хто краще зіграє людину яка намагається повернути куплену річ без чека",
-    "Хто переконає що їхня найнелюбіміша страва — насправді делікатес",
-    "Хто смішніше опише спробу вивчити іноземну мову за тиждень",
-    "Хто краще зіграє людину яка відкрила не той чат і вже надіслала повідомлення",
-    "Хто переконає що прокидатись о 5 ранку — це тортури а не продуктивність",
-    "Хто смішніше опише спробу зрозуміти рахунок в ресторані на компанію",
-    "Хто краще зіграє людину яка загубила телефон і не знає що робити з собою",
-    "Хто переконає що їхній спосіб заварювати чай або каву — це мистецтво",
-    "Хто смішніше опише спробу запам'ятати ім'я нової людини",
-    "Хто краще зіграє людину яка намагається не їсти після 18:00",
-    "Хто переконає що їхній страх — це насправді суперраціональний захисний механізм",
-    "Хто смішніше опише спробу сфотографувати красивий захід сонця на телефон",
-    "Хто краще зіграє людину яка вдає що не спала замість роботи",
-    "Хто переконає що спізнюватись на зустрічі — це ознака зайнятої успішної людини",
-    "Хто смішніше опише спробу вибрати що подивитись на Netflix за годину",
-    "Хто краще зіграє людину яка клянеться що більше не буде їсти цукор — і їсть шоколадку",
-    "Хто переконає що їхній найкращий рецепт з трьох інгредієнтів — шедевр кулінарії",
-    "Хто смішніше опише спробу прокинутись після сигналу будильника з першого разу",
-    "Хто краще зіграє людину яка отримала дзвінок від невідомого номера",
-    "Хто переконає що їхній спосіб відпочивати — найефективніший у світі",
-    "Хто смішніше опише спробу зробити щось тихо вночі щоб нікого не розбудити",
-    "Хто краще зіграє людину яка вдає що їй не холодно коли дуже холодно",
-    "Хто переконає що власна прокрастинація — це насправді глибока медитація",
-    "Хто смішніше опише спробу знайти парасолю коли вже йде дощ",
-    "Хто краще зіграє людину яка купила річ якою ніколи не скористається",
-    "Хто переконає що їхній метод прибирання — краще за будь-який порядок",
-    "Хто смішніше опише спробу здати річ в гардероб і отримати назад свою",
-    "Хто краще зіграє людину яка намагається вийти з розмови яка їй набридла",
-    "Хто переконає що їхній найбільш нелогічний страх — абсолютно раціональний",
-    "Хто смішніше опише спробу розібратись в інструкції до мікрохвильовки",
-    "Хто краще зіграє людину яка зустріла знайомого і не пам'ятає звідки",
-    "Хто переконає що їхній спосіб складати речі в валізу — геніальний",
-    "Хто смішніше опише спробу дочекатись замовлення доставки яке вже 3 години їде",
-    "Хто краще зіграє людину яка намагається вийти з групового чату непомітно",
-    "Хто переконає що їхня найбільша лінощі — це творчий підхід до ефективності",
-    "Хто смішніше опише момент коли телефон розрядився в найневідповідніший момент",
-    "Хто краще зіграє людину яка робить вигляд що їй подобається гучна музика на вечірці",
-    "Хто переконає що їхній метод навігації без Google Maps — надійніший",
-    "Хто смішніше опише спробу пояснити батькам як користуватись новим додатком",
-    "Хто краще зіграє людину яка вдає що розуміє мистецтво в музеї",
-    "Хто переконає що їхній підхід до економії грошей — геніальна фінансова стратегія",
-    "Хто смішніше опише спробу знайти вільне місце в переповненому транспорті",
-    "Хто краще зіграє людину яка стверджує що не дивиться серіали — але дивиться всі"
+    "Що б ти зробив якби прокинувся качкою?",
+    "Як би ти пояснив що таке Україна марсіанину?",
+    "Придумай відмовку чому запізнився на 3 години",
+    "Що б ти зробив якби раптово став невидимим на 10 хвилин?",
+    "Як би ти виживав якби всі магазини зачинились назавжди?",
+    "Що б ти зробив якби твій телефон почав відповідати замість тебе?",
+    "Як би ти пояснив інтернет людині з 1800 року?",
+    "Що б ти зробив якби міг літати але тільки дуже повільно?",
+    "Як би ти переконав поліцейського що ти насправді робот?",
+    "Що б ти зробив якби всі навколо раптово почали говорити навпаки?",
+    "Як би ти виглядав якби одягався з заплющеними очима?",
+    "Що б ти зробив якби твоя тінь почала жити своїм життям?",
+    "Як би ти провів день якби забув хто ти є?",
+    "Що б ти зробив якби всі твої думки звучали вголос?",
+    "Як би ти пояснив смартфон кішці?",
+    "З ким би ти залишився на безлюдному острові — з лікарем чи кухарем?",
+    "Що б ти взяв якби міг взяти тільки одну річ на місяць в джунглі?",
+    "Як би ти добував їжу якби всі магазини зникли?",
+    "Що б ти зробив якби мав вибрати між безкоштовною їжею і безкоштовним житлом?",
+    "Як би ти заробляв гроші якби всі твої навички раптово зникли?",
+    "Що б ти зробив якби міг мати тільки одну суперздатність але дуже безглузду?",
+    "Як би ти переконав незнайомця дати тобі грошей без пояснень?",
+    "Що б ти обрав — бути дуже розумним але некрасивим чи дуже красивим але дурним?",
+    "Як би ти жив якби міг спати тільки 2 години на добу?",
+    "Що б ти зробив якби міг зупинити час на 5 хвилин?",
+    "Кого б ти взяв з цієї компанії на необіталений острів і чому?",
+    "Хто з присутніх найдовше протримається без телефону?",
+    "Кому з компанії найбільше підходить роль злодія у фільмі?",
+    "Хто з присутніх найімовірніше став би президентом?",
+    "Кому з компанії найбільше личить бути вчителем?",
+    "Що краще — вміти читати думки чи вміти телепортуватись?",
+    "Що гірше — ніколи не їсти улюблену їжу чи ніколи не слухати музику?",
+    "Що краще — бути дуже багатим але нудним чи бідним але завжди веселим?",
+    "Що гірше — говорити тільки правду чи ніколи не мовчати?",
+    "Що краще — вміти говорити з тваринами чи з рослинами?",
+    "Що гірше — завжди запізнюватись на годину чи завжди приходити на годину раніше?",
+    "Що краще — жити 200 років але завжди бути хворим чи 50 але завжди здоровим?",
+    "Що гірше — ніколи не їсти солодке чи ніколи не їсти солоне?",
+    "Що краще — вміти літати чи дихати під водою?",
+    "Що гірше — ніколи не бачити сонця чи ніколи не бачити місяця?",
+    "Як би ти організував втечу з офісу якщо всі двері закриті?",
+    "Як би ти переконав шефа що ти працював весь день якщо спав?",
+    "Як би ти пояснив мамі що витратив всі гроші на щось безглузде?",
+    "Як би ти організував вечірку якби мав тільки 100 гривень?",
+    "Як би ти переконав друга позичити тобі гроші якщо вже винен?",
+    "Придумай назву для ресторану де подають тільки невдалі страви",
+    "Придумай суперздатність яка звучить круто але насправді безглузда",
+    "Придумай відмовку чому не зробив домашнє завдання — для дорослого",
+    "Придумай нову державну свято і поясни чому воно потрібне",
+    "Придумай правило яке зробило б світ гіршим але смішнішим",
+    "Що б ти зробив якби твоя найбільша мрія раптово здійснилась прямо зараз?",
+    "Як би ти виглядав якби одягався як твій улюблений персонаж?",
+    "Що б ти зробив якби міг повернутись на 10 років назад?",
+    "Як би ти виглядав якби зовнішність відображала твій характер?",
+    "Що б ти зробив якби дізнався що ти насправді робот?",
+    "Що б ти зробив якби виявив що вся твоя їжа вміє говорити?",
+    "Як би ти жив якби твій будинок щодня переміщувався в інше місце?",
+    "Що б ти зробив якби раптово забув як говорити?",
+    "Як би ти виглядав якби твої емоції змінювали колір твого волосся?",
+    "Що б ти зробив якби твій улюблений серіал виявився документальним?",
+    "Що краще — вміти зупиняти час чи повертати його назад?",
+    "Що гірше — жити без музики чи без кіно?",
+    "Що краще — знати всі мови світу чи вміти грати на всіх інструментах?",
+    "Що гірше — ніколи не сміятись чи ніколи не плакати?",
+    "Що краще — мати ідеальну пам'ять чи вміти забувати все погане?",
+    "Як би ти вийшов з незручної вечірки не образивши нікого?",
+    "Як би ти пояснив чому прийшов на роботу в піжамі?",
+    "Як би ти переконав незнайомця що ти його давній друг?",
+    "Як би ти вийшов з розмови яка тягнеться вже дві години?",
+    "Як би ти пояснив чому з'їв чужу їжу в холодильнику?",
+    "Що б ти зробив якби отримав мільйон але міг витратити тільки за 24 години?",
+    "Як би ти провів ідеальний день якби всі навколо виконували будь-яке твоє бажання?",
+    "Що б ти зробив якби міг говорити з тваринами і вони тобі відповіли б дуже неприємне?",
+    "Як би ти жив якби всі твої рішення приймались підкиданням монетки?",
+    "Що б ти зробив якби виявив що вся ця гра — насправді реаліті-шоу і тебе знімають?"
   ],
   sabotage: [
     "Поки гравець розповідає — решта по черзі вставляє слово 'качка' в будь-який момент",
@@ -553,34 +531,54 @@ const WARMUP = [
 ];
 
 const BUTTON_BEHAVIORS = [
-  'run', 'angry', 'cry', 'lie', 'flirt', 'melt', 'panic',
-  'flip', 'disappear', 'joke', 'broken', 'password',
-  'countdown', 'regret', 'confirm'
+  'run','angry','cry','lie','flirt','melt','panic',
+  'flip','disappear','joke','broken','password',
+  'countdown','regret','confirm'
 ];
 
-// ===== SOCKET.IO ЛОГІКА =====
+const RULES = `🪶 ЕФІР — ПРАВИЛА ДЛЯ ІНДІЙЦІВ
+
+Крок 1. Всі заходять по посиланню. Хто не зайшов — сам винен.
+
+Крок 2. Вводиш ім'я. Не своє — проблема твоя.
+
+Крок 3. Хост тисне кнопку старт. Кнопка може не погодитись. Тисни ще раз.
+
+Крок 4. Телефон тикає в когось пальцем. Це ти. Тобі завдання. Виконуй вголос. Соромитись заборонено.
+
+Крок 5. Всі дивляться на тебе. Сміються — добре. Мовчать — погано. Старайся.
+
+Крок 6. Після виступу всі ставлять оцінку від 1 до 10. Голосувати за себе не можна. Хоча дуже хочеться.
+
+Крок 7. Хто набрав найвищий середній бал за вечір — той найсмішніший.
+
+🎤 Історія — розкажи щось але з божевільною умовою
+🎭 Перевтілення — стань кимось іншим і не провались
+⚡ Дуель — двоє отримують 3 питання і відповідають по черзі. Хто смішніший — переміг
+🃏 Саботаж — говориш а всі навмисно тебе збивають. Удачі
+🎯 Челендж — просте завдання. Але чомусь ніхто не може виконати
+
+Є 3 пропуски на раунд якщо завдання зовсім не подобається.`;
+
+// ===== SOCKET.IO =====
 io.on('connection', (socket) => {
 
   socket.on('createRoom', ({ name }) => {
     let code;
     do { code = generateCode(); } while (rooms[code]);
-
     const btnBehavior = BUTTON_BEHAVIORS[Math.floor(Math.random() * BUTTON_BEHAVIORS.length)];
-
     rooms[code] = {
-      code,
-      host: socket.id,
-      players: [{ id: socket.id, name, score: 0, callCount: 0 }],
+      code, host: socket.id,
+      players: [{ id: socket.id, name, score: 0, callCount: 0, skipsLeft: 3 }],
       state: 'lobby',
       usedTasks: { story: [], transform: [], duel: [], sabotage: [], challenge: [] },
-      lastFormat: null,
-      currentPlayer: null,
-      votes: {},
-      roundNum: 0
+      lastFormat: null, currentPlayer: null, secondPlayer: null,
+      votes: {}, roundNum: 0, _timer: null,
+      duelVotes: {}, duelQuestions: [], duelCurrentQ: 0
     };
-
     socket.join(code);
-    socket.emit('roomCreated', { code, btnBehavior });
+    socket.data.roomCode = code;
+    socket.emit('roomCreated', { code, btnBehavior, rules: RULES });
     socket.emit('updatePlayers', rooms[code].players);
   });
 
@@ -588,13 +586,11 @@ io.on('connection', (socket) => {
     const room = rooms[code];
     if (!room) { socket.emit('error', 'Кімнату не знайдено'); return; }
     if (room.state !== 'lobby') { socket.emit('error', 'Гра вже почалась'); return; }
-
     const btnBehavior = BUTTON_BEHAVIORS[Math.floor(Math.random() * BUTTON_BEHAVIORS.length)];
-    room.players.push({ id: socket.id, name, score: 0, callCount: 0 });
+    room.players.push({ id: socket.id, name, score: 0, callCount: 0, skipsLeft: 3 });
     socket.join(code);
     socket.data.roomCode = code;
-
-    socket.emit('joinedRoom', { code, btnBehavior });
+    socket.emit('joinedRoom', { code, btnBehavior, rules: RULES });
     io.to(code).emit('updatePlayers', room.players);
   });
 
@@ -603,31 +599,48 @@ io.on('connection', (socket) => {
     if (!room || room.host !== socket.id) return;
     room.state = 'warmup';
     io.to(code).emit('gameStarted');
-
-    // Розігрів — рандомне повідомлення кожному в рандомний момент
     room.players.forEach((p) => {
       const delay = 2000 + Math.random() * 8000;
       const msg = WARMUP[Math.floor(Math.random() * WARMUP.length)];
-      setTimeout(() => {
-        io.to(p.id).emit('warmupMessage', { message: msg });
-      }, delay);
+      setTimeout(() => { io.to(p.id).emit('warmupMessage', { message: msg }); }, delay);
     });
-
-    // Старт першого раунду через 12 секунд
-    setTimeout(() => {
-      startRound(code);
-    }, 12000);
+    setTimeout(() => { startRound(code); }, 12000);
   });
 
-  socket.on('submitVote', ({ code, votedFor }) => {
+  socket.on('endRoundEarly', ({ code }) => {
+    const room = rooms[code];
+    if (!room || room.host !== socket.id) return;
+    clearRoomTimer(room);
+    if (room.state === 'duel') { endDuel(code); }
+    else if (room.state === 'round') { showVoting(code); }
+  });
+
+  socket.on('skipTask', ({ code }) => {
     const room = rooms[code];
     if (!room) return;
-    room.votes[socket.id] = votedFor;
+    const player = room.players.find(p => p.id === socket.id);
+    if (!player || player.id !== room.currentPlayer) return;
+    if (player.skipsLeft <= 0) { socket.emit('noSkipsLeft'); return; }
+    player.skipsLeft--;
+    const task = getTask(room, room.lastFormat);
+    room.currentTask = task;
+    io.to(code).emit('taskSkipped', { task, skipsLeft: player.skipsLeft });
+  });
 
-    const eligibleVoters = room.players.filter(p => p.id !== room.currentPlayer);
-    if (Object.keys(room.votes).length >= eligibleVoters.length) {
-      resolveVoting(code);
-    }
+  socket.on('submitVote', ({ code, score }) => {
+    const room = rooms[code];
+    if (!room) return;
+    room.votes[socket.id] = Number(score);
+    const eligible = room.players.filter(p => p.id !== room.currentPlayer);
+    if (Object.keys(room.votes).length >= eligible.length) { resolveVoting(code); }
+  });
+
+  socket.on('submitDuelVote', ({ code, winnerId }) => {
+    const room = rooms[code];
+    if (!room) return;
+    room.duelVotes[socket.id] = winnerId;
+    const eligible = room.players.filter(p => p.id !== room.currentPlayer && p.id !== room.secondPlayer);
+    if (Object.keys(room.duelVotes).length >= eligible.length) { resolveDuelVoting(code); }
   });
 
   socket.on('nextRound', ({ code }) => {
@@ -641,114 +654,178 @@ io.on('connection', (socket) => {
     if (!code || !rooms[code]) return;
     const room = rooms[code];
     room.players = room.players.filter(p => p.id !== socket.id);
-    if (room.players.length === 0) {
-      delete rooms[code];
-    } else {
-      if (room.host === socket.id) room.host = room.players[0].id;
-      io.to(code).emit('updatePlayers', room.players);
-    }
+    if (room.players.length === 0) { delete rooms[code]; return; }
+    if (room.host === socket.id) room.host = room.players[0].id;
+    io.to(code).emit('updatePlayers', room.players);
   });
 });
 
+function clearRoomTimer(room) {
+  if (room._timer) { clearTimeout(room._timer); room._timer = null; }
+}
+
 function getNextFormat(room) {
-  const formats = [...FORMATS];
-  if (room.lastFormat) {
-    const idx = formats.indexOf(room.lastFormat);
-    if (idx !== -1) formats.splice(idx, 1);
-  }
+  const formats = FORMATS.filter(f => f !== room.lastFormat);
   return formats[Math.floor(Math.random() * formats.length)];
 }
 
 function getTask(room, format) {
   const all = TASKS[format];
   const used = room.usedTasks[format];
-  const available = all.filter((_, i) => !used.includes(i));
-
-  if (available.length === 0) {
-    room.usedTasks[format] = [];
-    const idx = Math.floor(Math.random() * all.length);
-    room.usedTasks[format].push(idx);
-    return all[idx];
-  }
-
-  const idx = all.indexOf(available[Math.floor(Math.random() * available.length)]);
-  room.usedTasks[format].push(idx);
-  return all[idx];
+  const available = all.map((t, i) => ({ t, i })).filter(({ i }) => !used.includes(i));
+  if (available.length === 0) { room.usedTasks[format] = []; return all[Math.floor(Math.random() * all.length)]; }
+  const pick = available[Math.floor(Math.random() * available.length)];
+  used.push(pick.i);
+  return pick.t;
 }
 
 function getNextPlayer(room) {
-  const eligible = room.players.filter(p => {
-    const maxCalls = 3;
-    return p.callCount < maxCalls;
-  });
+  const eligible = room.players.filter(p => p.callCount < 3);
   if (eligible.length === 0) return null;
   eligible.sort((a, b) => a.callCount - b.callCount);
-  const minCalls = eligible[0].callCount;
-  const pool = eligible.filter(p => p.callCount === minCalls);
+  const min = eligible[0].callCount;
+  const pool = eligible.filter(p => p.callCount === min);
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
 function startRound(code) {
   const room = rooms[code];
   if (!room) return;
-
   const player = getNextPlayer(room);
-  if (!player) {
-    endGame(code);
-    return;
-  }
+  if (!player) { endGame(code); return; }
 
   const format = getNextFormat(room);
-  const task = getTask(room, format);
-
   room.lastFormat = format;
   room.currentPlayer = player.id;
+  room.secondPlayer = null;
   room.votes = {};
   room.roundNum++;
   player.callCount++;
+  player.skipsLeft = 3;
 
-  const formatLabels = {
-    story: '🎤 Історія',
-    transform: '🎭 Перевтілення',
-    duel: '⚡ Дуель',
-    sabotage: '🃏 Саботаж',
-    challenge: '🎯 Челендж'
-  };
+  if (format === 'duel') { startDuel(code, player); return; }
+
+  const task = getTask(room, format);
+  room.currentTask = task;
+  room.state = 'round';
+
+  const labels = { story: '🎤 Історія', transform: '🎭 Перевтілення', sabotage: '🃏 Саботаж', challenge: '🎯 Челендж' };
+  const startTime = Date.now();
 
   io.to(code).emit('roundStarted', {
-    playerName: player.name,
-    playerId: player.id,
-    format,
-    formatLabel: formatLabels[format],
-    task,
-    roundNum: room.roundNum,
-    duration: 90
+    playerName: player.name, playerId: player.id,
+    format, formatLabel: labels[format],
+    task, roundNum: room.roundNum,
+    duration: 90, skipsLeft: 3, startTime
+  });
+
+  clearRoomTimer(room);
+  room._timer = setTimeout(() => { showVoting(code); }, 90000);
+}
+
+function startDuel(code, player1) {
+  const room = rooms[code];
+  const others = room.players.filter(p => p.id !== player1.id);
+  if (others.length === 0) { startRound(code); return; }
+  const player2 = others[Math.floor(Math.random() * others.length)];
+  room.secondPlayer = player2.id;
+  room.state = 'duel';
+  room.duelVotes = {};
+  room.duelCurrentQ = 0;
+  room.duelQuestions = [getTask(room, 'duel'), getTask(room, 'duel'), getTask(room, 'duel')];
+
+  io.to(code).emit('duelStarted', {
+    player1: { id: player1.id, name: player1.name },
+    player2: { id: player2.id, name: player2.name },
+    roundNum: room.roundNum
+  });
+
+  setTimeout(() => { startDuelQuestion(code, 0); }, 3000);
+}
+
+function startDuelQuestion(code, qIndex) {
+  const room = rooms[code];
+  if (!room) return;
+  if (qIndex >= room.duelQuestions.length) { endDuel(code); return; }
+
+  const question = room.duelQuestions[qIndex];
+  const p1 = room.players.find(p => p.id === room.currentPlayer);
+  const p2 = room.players.find(p => p.id === room.secondPlayer);
+  const first = qIndex % 2 === 0 ? p1 : p2;
+  const second = qIndex % 2 === 0 ? p2 : p1;
+  const startTime = Date.now();
+
+  io.to(code).emit('duelQuestion', {
+    question, questionNum: qIndex + 1, totalQuestions: room.duelQuestions.length,
+    firstPlayer: { id: first.id, name: first.name },
+    secondPlayer: { id: second.id, name: second.name },
+    answeringId: first.id, duration: 45, startTime
+  });
+
+  clearRoomTimer(room);
+  room._timer = setTimeout(() => {
+    const startTime2 = Date.now();
+    io.to(code).emit('duelSecondAnswer', {
+      answeringId: second.id, answeringName: second.name, duration: 45, startTime: startTime2
+    });
+    room._timer = setTimeout(() => { startDuelQuestion(code, qIndex + 1); }, 45000);
+  }, 45000);
+}
+
+function endDuel(code) {
+  const room = rooms[code];
+  if (!room) return;
+  const p1 = room.players.find(p => p.id === room.currentPlayer);
+  const p2 = room.players.find(p => p.id === room.secondPlayer);
+  room.duelVotes = {};
+  io.to(code).emit('duelVoting', {
+    player1: { id: p1.id, name: p1.name },
+    player2: { id: p2.id, name: p2.name }
+  });
+}
+
+function resolveDuelVoting(code) {
+  const room = rooms[code];
+  if (!room) return;
+  const tally = {};
+  Object.values(room.duelVotes).forEach(id => { tally[id] = (tally[id] || 0) + 1; });
+  const p1v = tally[room.currentPlayer] || 0;
+  const p2v = tally[room.secondPlayer] || 0;
+  let winnerId = null;
+  if (p1v > p2v) winnerId = room.currentPlayer;
+  else if (p2v > p1v) winnerId = room.secondPlayer;
+  if (winnerId) {
+    const w = room.players.find(p => p.id === winnerId);
+    if (w) w.score += Math.max(p1v, p2v);
+  }
+  io.to(code).emit('duelResult', { winnerId, votes: tally, players: room.players });
+}
+
+function showVoting(code) {
+  const room = rooms[code];
+  if (!room) return;
+  clearRoomTimer(room);
+  room.state = 'voting';
+  room.votes = {};
+  const cp = room.players.find(p => p.id === room.currentPlayer);
+  io.to(code).emit('showVoting', {
+    currentPlayerId: room.currentPlayer,
+    currentPlayerName: cp ? cp.name : ''
   });
 }
 
 function resolveVoting(code) {
   const room = rooms[code];
   if (!room) return;
-
-  const tally = {};
-  Object.values(room.votes).forEach(id => {
-    tally[id] = (tally[id] || 0) + 1;
-  });
-
-  let maxVotes = 0;
-  let winnerId = null;
-  Object.entries(tally).forEach(([id, count]) => {
-    if (count > maxVotes) { maxVotes = count; winnerId = id; }
-  });
-
-  if (winnerId) {
-    const winner = room.players.find(p => p.id === winnerId);
-    if (winner) winner.score += maxVotes;
-  }
-
+  const scores = Object.values(room.votes).map(Number);
+  const avg = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+  const rounded = Math.round(avg * 10) / 10;
+  const player = room.players.find(p => p.id === room.currentPlayer);
+  if (player) player.score += Math.round(avg);
   io.to(code).emit('votingResult', {
-    votes: tally,
-    winnerId,
+    playerId: room.currentPlayer,
+    playerName: player ? player.name : '',
+    avgScore: rounded,
     players: room.players
   });
 }
@@ -757,11 +834,8 @@ function endGame(code) {
   const room = rooms[code];
   if (!room) return;
   room.state = 'finished';
-  const sorted = [...room.players].sort((a, b) => b.score - a.score);
-  io.to(code).emit('gameEnded', { players: sorted });
+  io.to(code).emit('gameEnded', { players: [...room.players].sort((a, b) => b.score - a.score) });
 }
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`ЕФІР сервер запущено на порту ${PORT}`);
-});
+server.listen(PORT, () => { console.log(`ЕФІР сервер запущено на порту ${PORT}`); });
