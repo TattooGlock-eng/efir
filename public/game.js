@@ -159,7 +159,6 @@ document.getElementById('joinBtn').addEventListener('click', () => {
 document.getElementById('playerName').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('joinBtn').click(); });
 document.getElementById('roomCode').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('joinBtn').click(); });
 
-// ПРАВИЛА — фікс
 document.getElementById('rulesBtn').addEventListener('click', () => {
   document.getElementById('rulesText').textContent = rules || 'Завантаження...';
   showScreen('screen-rules');
@@ -240,51 +239,47 @@ document.getElementById('warmupOkBtn').addEventListener('click', () => {
   document.getElementById('warmupWaiting').style.display = 'block';
 });
 
-// ===== РАУНД ГОТОВИЙ (гравець читає завдання) =====
-socket.on('roundReady', ({ format, formatLabel, topic, fullTask, playerName, roundNum, isMyturn, isSaboteur }) => {
+// ===== РАУНД ГОТОВИЙ =====
+socket.on('roundReady', ({ format, formatLabel, topic, fullTask, playerId, playerName, roundNum, isMyturn, isSaboteur }) => {
   clearInterval(timerInterval);
   currentFormat = format;
   currentRoundNum = roundNum;
-  currentPlayerId = null; // буде після playerStarted
+  currentPlayerId = playerId;  // ВАЖЛИВО: зберігаємо playerId
   currentPlayerName = playerName;
   myFullTask = fullTask || null;
   iAmSaboteur = isSaboteur || false;
+  mySaboteurAction = null;
 
-  const playerIndex = players.findIndex(p => p.name === playerName);
+  const playerIndex = players.findIndex(p => p.id === playerId);
   const me = players.find(p => p.id === myId);
   if (me) myScore = me.score;
 
-  // Заголовок
   document.getElementById('readyRoundPill').textContent = `Раунд ${roundNum}`;
   document.getElementById('readyScorePill').textContent = `⭐ ${myScore}`;
 
-  // Спотлайт
   const avatar = document.getElementById('readyAvatar');
   avatar.className = `spotlight-avatar ${getAvatarClass(playerIndex < 0 ? 0 : playerIndex)}`;
   avatar.textContent = getInitial(playerName);
   document.getElementById('readyPlayerName').textContent = playerName;
 
-  // Формат
   const badge = document.getElementById('readyFormatBadge');
   badge.textContent = formatLabel;
   badge.className = `format-badge format-${format}`;
 
-  // Ховаємо всі блоки
   document.getElementById('my-ready-wrap').style.display = 'none';
   document.getElementById('saboteur-ready-wrap').style.display = 'none';
   document.getElementById('others-ready-wrap').style.display = 'none';
   document.getElementById('host-end-ready').style.display = 'none';
 
   if (isMyturn) {
-    // Активний гравець
     document.getElementById('my-ready-wrap').style.display = 'block';
     document.getElementById('readyTopicText').textContent = topic || '';
     document.getElementById('readyFullTask').textContent = fullTask || '';
   } else if (isSaboteur) {
-    // Саботажник
     document.getElementById('saboteur-ready-wrap').style.display = 'block';
+    document.getElementById('saboteurTopicDisplay').textContent = topic || 'Гравець розповідає будь-що';
+    // Текст місії прийде окремо через saboteurAssigned
   } else {
-    // Глядачі
     document.getElementById('others-ready-wrap').style.display = 'block';
     document.getElementById('othersTopicText').textContent = topic || '';
     const sabWarn = document.getElementById('sabotage-warning');
@@ -295,32 +290,31 @@ socket.on('roundReady', ({ format, formatLabel, topic, fullTask, playerName, rou
   showScreen('screen-ready');
 });
 
-// Саботажник отримує інструкцію
 socket.on('saboteurAssigned', ({ action }) => {
   mySaboteurAction = action;
-  document.getElementById('saboteurActionText').textContent = action;
-  document.getElementById('saboteurTaskText').textContent = action;
+  // Оновлюємо текст якщо вже на екрані
+  const el = document.getElementById('saboteurActionText');
+  if (el) el.textContent = action;
+  const el2 = document.getElementById('saboteurTaskText');
+  if (el2) el2.textContent = action;
 });
 
-// Активний гравець натискає ПОЧИНАЮ
 document.getElementById('startSpeakingBtn').addEventListener('click', () => {
   socket.emit('playerStarted', { code: myRoomCode });
-  // Показуємо екран раунду з завданням
-  showRoundScreen();
+  showMyRoundScreen();
 });
 
 document.getElementById('endReadyBtn').addEventListener('click', () => {
   socket.emit('endRoundEarly', { code: myRoomCode });
 });
 
-function showRoundScreen() {
-  const me = players.find(p => p.name === currentPlayerName && p.id === myId);
-  const isMyTurn = me !== undefined;
+function showMyRoundScreen() {
+  const isMyTurn = currentPlayerId === myId;
 
   document.getElementById('roundPill').textContent = `Раунд ${currentRoundNum}`;
   document.getElementById('scorePill').textContent = `⭐ ${myScore}`;
 
-  const playerIndex = players.findIndex(p => p.name === currentPlayerName);
+  const playerIndex = players.findIndex(p => p.id === currentPlayerId);
   const avatar = document.getElementById('spotlightAvatar');
   avatar.className = `spotlight-avatar ${getAvatarClass(playerIndex < 0 ? 0 : playerIndex)}`;
   avatar.textContent = getInitial(currentPlayerName);
@@ -342,20 +336,16 @@ function showRoundScreen() {
   }
 
   if (isHost) document.getElementById('host-end-round').style.display = 'block';
-
   showScreen('screen-round');
 }
 
-// Таймер стартує коли гравець натиснув ПОЧИНАЮ
 socket.on('roundTimerStart', ({ startTime, duration }) => {
-  // Всі переходять на екран раунду
-  const isMyTurn = players.find(p => p.id === myId && p.name === currentPlayerName);
-  if (!isMyTurn) {
-    // Не активний гравець — показуємо екран раунду
+  // Не активний гравець переходить на екран раунду
+  if (currentPlayerId !== myId) {
     document.getElementById('roundPill').textContent = `Раунд ${currentRoundNum}`;
     document.getElementById('scorePill').textContent = `⭐ ${myScore}`;
 
-    const playerIndex = players.findIndex(p => p.name === currentPlayerName);
+    const playerIndex = players.findIndex(p => p.id === currentPlayerId);
     const avatar = document.getElementById('spotlightAvatar');
     avatar.className = `spotlight-avatar ${getAvatarClass(playerIndex < 0 ? 0 : playerIndex)}`;
     avatar.textContent = getInitial(currentPlayerName);
@@ -375,7 +365,6 @@ socket.on('roundTimerStart', ({ startTime, duration }) => {
 
     showScreen('screen-round');
   }
-
   startSyncTimer(startTime, duration, 'timerFill', 'timerVal');
 });
 
@@ -386,7 +375,6 @@ document.getElementById('endRoundBtn').addEventListener('click', () => {
 // ===== ВГАДУВАННЯ =====
 socket.on('showGuessing', ({ options, format, currentPlayerId: cpId }) => {
   clearInterval(timerInterval);
-  currentPlayerId = cpId;
   selectedGuess = null;
   const isMe = cpId === myId;
 
@@ -396,6 +384,7 @@ socket.on('showGuessing', ({ options, format, currentPlayerId: cpId }) => {
 
   const container = document.getElementById('guessOptions');
   container.innerHTML = '';
+
   document.getElementById('submitGuessBtn').style.display = isMe ? 'none' : 'block';
   document.getElementById('submitGuessBtn').disabled = true;
   document.getElementById('guess-waiting').style.display = 'none';
@@ -415,7 +404,6 @@ socket.on('showGuessing', ({ options, format, currentPlayerId: cpId }) => {
       container.appendChild(el);
     });
   }
-
   showScreen('screen-guessing');
 });
 
@@ -440,14 +428,6 @@ socket.on('guessingResult', ({ correctIndex, correctAnswer, results, players: up
     row.innerHTML = `<span class="guess-result-icon">${correct ? '✅' : '❌'}</span><span style="flex:1;font-size:14px;font-weight:800;">${p.name}</span><span style="font-size:13px;color:var(--muted);font-weight:700;">${correct ? '+1 бал' : ''}</span>`;
     container.appendChild(row);
   });
-
-  // Виділяємо правильний варіант на екрані вгадування
-  const opts = document.querySelectorAll('.guess-option');
-  opts.forEach((el, i) => {
-    if (i === correctIndex) el.classList.add('correct');
-    else if (el.classList.contains('selected')) el.classList.add('wrong');
-  });
-
   showScreen('screen-guess-result');
 });
 
@@ -503,11 +483,11 @@ socket.on('showSaboteurGuessing', ({ hint, players: updatedPlayers, saboteurId, 
 
   if (!isSaboteur) {
     players.forEach((p, i) => {
-      if (p.id === currentPlayerId) return; // активний не може бути саботажником
+      if (p.id === currentPlayerId) return;
       const el = document.createElement('div');
       el.className = 'guess-option';
       el.innerHTML = `
-        <div class="vote-avatar ${getAvatarClass(i)}" style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:white;flex-shrink:0;">${getInitial(p.name)}</div>
+        <div class="${getAvatarClass(i)}" style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:white;flex-shrink:0;background:var(--orange);">${getInitial(p.name)}</div>
         <div class="guess-option-text">${p.name}</div>
         <div class="guess-check">✓</div>
       `;
@@ -520,7 +500,6 @@ socket.on('showSaboteurGuessing', ({ hint, players: updatedPlayers, saboteurId, 
       container.appendChild(el);
     });
   }
-
   showScreen('screen-saboteur-guess');
 });
 
@@ -547,10 +526,10 @@ document.getElementById('nextRoundBtnSaboteur').addEventListener('click', () => 
   socket.emit('nextRound', { code: myRoomCode });
 });
 
-// ===== РЕЗУЛЬТАТ РАУНДУ =====
+// ===== РЕЗУЛЬТАТ =====
 socket.on('roundResult', ({ avgScore, playerName, players: updated }) => {
   players = updated;
-  const isMe = players.find(p => p.id === myId && p.name === playerName);
+  const isMe = currentPlayerId === myId;
   document.getElementById('resultEmoji').textContent = isMe ? '🎤' : '📊';
   document.getElementById('resultTitle').textContent = isMe ? 'Твій результат!' : `${playerName} отримав:`;
   document.getElementById('resultScore').textContent = `${avgScore} / 10`;
