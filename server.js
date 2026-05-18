@@ -26,11 +26,6 @@ function shuffle(arr) {
   return a;
 }
 
-// ===== КОНТЕНТ =====
-// Формат для Історії та Перевтілення:
-// { topic, twist, fakeOptions: [3 неправильних варіанти] }
-// Правильний варіант = twist, решта = fakeOptions (всього 4 варіанти)
-
 const STORIES = [
   { topic: "розкажи про свій ранок", twist: "але ти щойно прокинувся на іншій планеті", fakes: ["але тебе ніхто не слухає", "але ти забув як говорити", "але ти вже третій день не спиш"] },
   { topic: "поясни як ти добираєшся додому", twist: "але твій транспорт — це черепаха", fakes: ["але ти не знаєш куди йдеш", "але всі дороги перекриті", "але у тебе немає взуття"] },
@@ -52,7 +47,7 @@ const STORIES = [
   { topic: "розкажи як пройшов твій тиждень", twist: "але кожен день був абсолютно однаковий", fakes: ["але ти нічого не пам'ятаєш", "але ти провів його в ліжку", "але ти сплутав всі дні"] },
   { topic: "опиши свій телефон", twist: "але він розумніший за тебе і ти це знаєш", fakes: ["але він постійно розряджається", "але він старший за тебе", "але він тебе не слухається"] },
   { topic: "розкажи про свого сусіда", twist: "але ти ніколи його не бачив але чуєш кожного дня", fakes: ["але ти не знаєш його імені", "але він дуже шумний", "але він кращий за тебе в усьому"] },
-  { topic: "поясни що таке понеділок", twist: "але від його імені — він теж страждає", fakes: ["але ти його ненавидиш більше всього", "але для тебе він нічим не відрізняється", "але ти завжди хворієш в понеділок"] },
+  { topic: "поясни що таке понеділок", twist: "але від його імені — він теж страждає", fakes: ["але для тебе він нічим не відрізняється", "але ти його ненавидиш більше всього", "але ти завжди хворієш в понеділок"] },
   { topic: "розкажи про своє волосся", twist: "але воно живе своїм окремим життям", fakes: ["але воно тебе не слухається", "але ти вже рік збираєшся підстригтись", "але ти ніколи не знаєш що з ним робити"] },
   { topic: "опиши як ти ходиш за покупками", twist: "але ти йдеш за хлібом а повертаєшся з 40 речами", fakes: ["але ти завжди забуваєш список", "але ти купуєш тільки непотрібне", "але ти ніколи не знаєш що купити"] },
   { topic: "розкажи про свій найстрашніший сон", twist: "але він виявився кращим за реальність", fakes: ["але ти вже забув деталі", "але він повторюється кожну ніч", "але ти не можеш розповісти без сміху"] },
@@ -69,13 +64,12 @@ const STORIES = [
   { topic: "опиши своє ставлення до спорту", twist: "але ти вважаєш що ходьба до холодильника — це марафон", fakes: ["але ти давно збираєшся почати", "але ти платиш за абонемент і не ходиш", "але ти дивишся спорт замість того щоб займатись"] },
   { topic: "розкажи про свою улюблену страву", twist: "але ти їси її тільки коли ніхто не бачить", fakes: ["але ти соромишся її замовляти", "але вона зовсім нездорова", "але ти їси її щодня вже рік"] },
   { topic: "поясни як ти приймаєш важливі рішення", twist: "але ти підкидаєш монетку і все одно робиш по-своєму", fakes: ["але ти завжди питаєш у мами", "але ти тягнеш до останнього", "але ти завжди помиляєшся"] },
-  { topic: "розкажи про свій телефонний дзвінок з незнайомим номером", twist: "але ти відповів і це був ти сам з майбутнього", fakes: ["але ти не відповів", "але там мовчали", "але тобі продавали щось непотрібне"] },
+  { topic: "розкажи про своє ставлення до порад", twist: "але ти просиш поради і робиш навпаки", fakes: ["але ти завжди їх даєш іншим", "але ти ніколи їх не просиш", "але ти завжди забуваєш що тобі радили"] },
   { topic: "опиши як ти готуєшся до сну", twist: "але замість сну ти дивишся в телефон до 3 ночі", fakes: ["але ти засинаєш за 10 секунд", "але ти не можеш заснути без певного ритуалу", "але ти завжди забуваєш почистити зуби"] },
   { topic: "розкажи про свій найкращий комплімент", twist: "але він звучав як образа", fakes: ["але ти його не одразу зрозумів", "але він прийшов від незнайомця", "але ти все одно запам'ятав його на все життя"] },
   { topic: "поясни що таке лінь", twist: "але від імені людини яка підняла лінь до рівня мистецтва", fakes: ["але ти сам не знаєш що це", "але ти з нею борешся кожен день", "але вона тебе ніколи не відпускає"] },
   { topic: "розкажи про своє перше кохання", twist: "але це була піца", fakes: ["але ти вже не пам'ятаєш деталей", "але все пішло не так", "але ти до сих пір з ним в контакті"] },
   { topic: "опиши як ти реагуєш на критику", twist: "але ти погоджуєшся з усім і потім робиш по-своєму", fakes: ["але ти ніколи не слухаєш", "але ти одразу захищаєшся", "але тебе ніколи не критикують"] },
-  { topic: "розкажи про свій найдивніший сон", twist: "але він повторюється кожні три роки і ти вже чекаєш наступного", fakes: ["але він був дуже логічним", "але ти не можеш його забути", "але в ньому ти летів"] },
   { topic: "поясни як ти знаходиш дорогу", twist: "але ти завжди йдеш навпаки від правильного напрямку", fakes: ["але ти ніколи не питаєш у людей", "але ти завжди покладаєшся на Google", "але ти завжди заходиш не туди"] },
   { topic: "розкажи про свій найкращий подарунок", twist: "але ти його подарував сам собі", fakes: ["але він виявився не тим", "але ти його вже загубив", "але він досі лежить в упаковці"] },
   { topic: "опиши що ти робиш в черзі", twist: "але ти завжди стоїш в найдовшій і переходиш в ще довшу", fakes: ["але ти завжди знаходиш когось знайомого", "але ти весь час дивишся в телефон", "але ти злишся але мовчиш"] },
@@ -91,7 +85,6 @@ const STORIES = [
   { topic: "поясни як ти обираєш що дивитись", twist: "але ти гортаєш пів години і вмикаєш те що дивився вже тричі", fakes: ["але ти завжди питаєш у когось", "але ти завжди обираєш щось нове", "але ти часто засинаєш на першій серії"] },
   { topic: "розкажи про свій найзніяковіліший момент", twist: "але ти до сих пір прокидаєшся вночі і думаєш про нього", fakes: ["але ти вже смієшся з цього", "але ніхто цього не помітив крім тебе", "але він стався на людях"] },
   { topic: "опиши що ти робиш коли нудьгуєш", twist: "але ти дзвониш людям яким не дзвонив роками", fakes: ["але ти починаєш прибирати", "але ти їси без причини", "але ти придумуєш нові плани які ніколи не реалізуєш"] },
-  { topic: "розкажи про свій найкращий відмовляй від зустрічі привід", twist: "але він такий безглуздий що люди думають що це правда", fakes: ["але ти завжди кажеш одне і те саме", "але ти відчуваєш вину після", "але тебе завжди ловлять на брехні"] },
   { topic: "поясни що таке ідеальні вихідні", twist: "але в них ти нікому не відповідаєш і це найкраща частина", fakes: ["але ти завжди щось плануєш і нічого не виходить", "але ти їх завжди проводиш однаково", "але вони ніколи не бувають ідеальними"] },
   { topic: "розкажи про свою реакцію на спойлери", twist: "але ти сам завжди читаєш кінцівку наперед", fakes: ["але ти ненавидиш їх більше за все", "але ти їх не помічаєш", "але вони ніколи тобі не шкодять"] },
   { topic: "опиши як ти робиш фото на пам'ять", twist: "але ти знімаєш 50 фото і не дивишся жодного", fakes: ["але ти завжди незадоволений результатом", "але ти ніколи не в кадрі", "але ти завжди забуваєш дістати телефон"] },
@@ -109,7 +102,7 @@ const TRANSFORMATIONS = [
   { topic: "розповідає про домашніх тварин", role: "людина яка їх боїться але намагається приховати", fakes: ["ветеринар якому набридли тварини", "людина яка думає що тварини розуміють все", "сусід якого дістали чужі тварини"] },
   { topic: "пояснює як працює інтернет", role: "чарівник який думає що це магія", fakes: ["хакер якому нудно від простих питань", "програміст який не може пояснити просто", "дитина яка думає що там живуть людки"] },
   { topic: "розповідає про свою роботу", role: "шпигун під прикриттям", fakes: ["людина яка ненавидить свою роботу але вдає", "начальник який думає що всі його люблять", "стажер який нічого не розуміє але впевнений"] },
-  { topic: "пояснює що таке кохання", role: "робот якого навчають почуттям", fakes: ["романтик який бачив забагато серіалів", "циніком який не вірить в кохання", "дитина яка бачила тільки мультики"] },
+  { topic: "пояснює що таке кохання", role: "робот якого навчають почуттям", fakes: ["романтик який бачив забагато серіалів", "цинік який не вірить в кохання", "дитина яка бачила тільки мультики"] },
   { topic: "розповідає про вихідні", role: "президент країни на відпочинку", fakes: ["людина яка не відрізняє вихідні від будніх", "трудоголік якому нудно без роботи", "пенсіонер для якого кожен день вихідний"] },
   { topic: "пояснює що таке гроші", role: "пірат з 17 століття який знайшов банківську карту", fakes: ["філософ якому гроші не потрібні", "мільярдер який забув як вони виглядають", "дитина яка думає що вони ростуть на деревах"] },
   { topic: "розповідає про свій ранок", role: "сова яку змусили прокинутись о 6 ранку", fakes: ["жайворонок який не розуміє чому всі сплять", "людина яка прокидається раніше будильника", "кіт якому все одно"] },
@@ -150,10 +143,10 @@ const TRANSFORMATIONS = [
   { topic: "пояснює що таке порядок вдома", role: "людина яка переставляє речі з місця на місце і вважає що прибрала", fakes: ["людина яка прибирає тільки перед гостями", "людина яка не може знайти нічого навіть в порядку", "людина яка живе в ідеальному порядку і страждає"] },
   { topic: "розповідає про свій спорт", role: "людина яка платить за абонемент вже рік і була там двічі", fakes: ["спортсмен який зупинився і не може почати знову", "людина яка займається спортом тільки влітку", "людина яка вважає прогулянку повноцінним тренуванням"] },
   { topic: "пояснює що таке романтика", role: "людина яка вважає що купити торт замість квітів — це романтично і практично", fakes: ["людина яка бачила забагато романтичних фільмів", "людина яка ненавидить романтику але приймає подарунки", "людина яка плутає романтику зі звичайною добротою"] },
-  { topic: "розповідає про плани на майбутнє", role: "людина яка планує все і не робить нічого", fakes: ["людина яка живе тільки сьогоднішнім днем", "людина яка планує і все виходить — але вона ще не вірить", "людина яка боїться планувати бо не хоче розчаруватись"] },
+  { topic: "розповідає про плани на майбутнє", role: "людина яка планує все і не робить нічого", fakes: ["людина яка живе тільки сьогоднішнім днем", "людина яка планує і все виходить але вона ще не вірить", "людина яка боїться планувати бо не хоче розчаруватись"] },
   { topic: "пояснює що таке відповідальність", role: "кіт якому доручили щось важливе", fakes: ["людина яка перекладає відповідальність на інших", "людина яка бере на себе все і страждає", "людина яка вважає що відповідальність — для інших"] },
-  { topic: "розповідає про свою дієту", twist: "але вона складається з обіцянок почати з понеділка", fakes: ["людина яка на дієті вже 5 років без результату", "людина яка не визнає що їсть багато", "дієтолог який сам не худне"] },
-  { topic: "пояснює що таке вірність", role: "людина яка зраджує тільки своїм дієтам", fakes: ["людина яка вірна всьому — навіть поганим звичкам", "людина яка вірна але злиться через це", "людина яка вірна всім своїм 15 серіалам одночасно"] },
+  { topic: "розповідає про свою дієту", role: "людина чия дієта складається з обіцянок почати з понеділка", fakes: ["людина яка на дієті вже 5 років без результату", "людина яка не визнає що їсть багато", "дієтолог який сам не худне"] },
+  { topic: "пояснює що таке вірність", role: "людина яка зраджує тільки своїм дієтам", fakes: ["людина яка вірна всьому навіть поганим звичкам", "людина яка вірна але злиться через це", "людина яка вірна всім своїм 15 серіалам одночасно"] },
   { topic: "розповідає про свій страх публічних виступів", role: "людина яка боїться але говорить більше за всіх", fakes: ["актор якому набридло виступати", "людина яка мріє говорити але мовчить", "людина яка завжди говорить не те що планувала"] },
   { topic: "пояснює що таке сила волі", role: "людина яка не може не їсти перед сном і пишається що зупинилась після третього шматка", fakes: ["людина яка має залізну силу волі у всьому крім одного", "людина яка вважає що сила волі переоцінена", "людина яка використовує силу волі щоб не прибирати"] },
   { topic: "розповідає про першу зустріч з кимось", role: "людина яка одразу розповідає всі свої таємниці незнайомцям", fakes: ["людина яка надто стримана на першій зустрічі", "людина яка забуває ім'я одразу після знайомства", "людина яка оцінює людей за рукостисканням"] },
@@ -166,7 +159,7 @@ const TRANSFORMATIONS = [
 ];
 
 const SABOTAGE = [
-  { action: "По черзі вставляй слово 'качка' в розмову", hint: "хтось дуже любить одну конкретну тварину" },
+  { action: "По черзі вставляй слово 'качка' в розмову", hint: "хтось дуже любив одну конкретну тварину" },
   { action: "Перебивай питанням кожні 15 секунд", hint: "хтось дуже цікавився деталями" },
   { action: "Дивись повз гравця ніби бачиш щось цікавіше за спиною", hint: "комусь було цікавіше щось інше" },
   { action: "Погоджуйся з усім кивком голови навіть з нісенітницями", hint: "хтось був підозріло згідливим" },
@@ -226,7 +219,7 @@ const SABOTAGE = [
   { action: "Поступово стискай губи все сильніше ніби стримуєшся", hint: "хтось явно хотів щось сказати" },
   { action: "Раз скажи 'чекай я не встиг записати' і зроби вигляд що пишеш", hint: "хтось намагався зафіксувати деталі" },
   { action: "Кивай і одночасно злегка хитай головою ніби не впевнений", hint: "хтось погоджувався і сумнівався одночасно" },
-  { action: "Раз скажи 'це між нами' дуже голосно", hint: "хтось погано розумів що значить 'між нами'" },
+  { action: "Раз скажи 'це між нами' дуже голосно", hint: "хтось погано розумів що значить між нами" },
   { action: "Роби вигляд що бачиш щось за спиною гравця і пильнуй це", hint: "хтось відволікав увагу від розповідача" },
   { action: "Поступово розгортайся до гравця боком", hint: "хтось поступово відвертався" },
   { action: "Раз запитай 'ти впевнений?' після абсолютно звичайного речення", hint: "хтось сумнівався в очевидному" },
@@ -259,34 +252,54 @@ const WARMUP = [
 
 const BUTTON_BEHAVIORS = [
   'run','angry','cry','lie','flirt','melt','panic',
-  'flip','disappear','joke','broken','password',
-  'countdown','regret','confirm'
+  'flip','disappear','joke','broken','password','countdown','regret','confirm'
 ];
 
 const RULES = `🪶 ЕФІР — ПРАВИЛА ДЛЯ ІНДІЙЦІВ
 
-Крок 1. Всі заходять по посиланню. Хто не зайшов — сам винен.
+Крок 1. Всі заходять по посиланню і вводять ім'я.
+Не своє ім'я — твоя проблема.
 
-Крок 2. Вводиш ім'я. Не своє — проблема твоя.
+Крок 2. Кожен натискає свою кнопку готовності.
+Кнопка може не погодитись. Це нормально. Тисни ще.
 
-Крок 3. Хост тисне кнопку старт. Кнопка може не погодитись. Тисни ще раз.
+Крок 3. Хост запускає гру. Його кнопка теж може збунтуватись.
 
-Крок 4. Телефон обирає гравця. Гравець читає своє завдання. Коли готовий — натискає ПОЧИНАЮ і говорить вголос.
+Крок 4. Телефон обирає гравця. Гравець отримує завдання.
+Решта бачить тільки тему — але не деталі. Це важливо.
 
-Крок 5. Всі слухають. Якщо раунд САБОТАЖ — один таємно отримав інструкцію як заважати. Знайдіть його після.
+Крок 5. Гравець читає завдання. Коли готовий — натискає ПОЧИНАЮ.
+Тільки тоді йде таймер. Не поспішай. Або поспішай. Ми не твоя мама.
 
-Крок 6. Після виступу:
-→ Всі вгадують що було в завданні — вибирають з 4 варіантів
-→ Потім оцінюють виступ від 1 до 10
-→ Якщо САБОТАЖ — ще вгадують хто був саботажником
+Крок 6. Гравець говорить 90 секунд. Решта слухає і запам'ятовує.
 
-Крок 7. Бали:
-⭐ За правильну відповідь — 1 бал
-🎤 За оцінку виступу — до 10 балів гравцю
-🕵️ За впіймання саботажника — 1 бал
-🎭 Саботажник якщо не впіймали — 2 бали
+ЯКЩО ЦЕ 🎤 ІСТОРІЯ:
+Гравець розповідає на тему — але з таємною заковиркою яку знає тільки він.
+Після виступу всі вибирають з 4 варіантів яка була заковирка.
+Вгадав — отримуєш бал. Не вгадав — соромишся мовчки.
 
-Хто набрав найбільше — переміг і тепер мусить сплатити рахунок. Жартуємо. Або ні.`;
+ЯКЩО ЦЕ 🎭 ПЕРЕВТІЛЕННЯ:
+Всі бачать що гравець пояснює. Але не знають ким він є.
+Після виступу вибираєш з 4 варіантів хто це був.
+Схожі варіанти. Спеціально. Щоб було складніше.
+
+ЯКЩО ЦЕ 🃏 САБОТАЖ:
+Один гравець таємно отримує інструкцію як збити оповідача з пантелику.
+Решта не знає хто це. Треба здогадатись.
+Після виступу — голосування хто був саботажником.
+Підказка буде. Але завуальована. Тримайся.
+
+Крок 7. Після виступу всі оцінюють від 1 до 10.
+1 — людина говорила і тебе не було. 10 — ти плачеш від сміху.
+
+БАЛИ:
+⭐ Вгадав заковирку або роль — +1 бал
+🎤 Середня оцінка виступу — до +10 балів гравцю
+🕵️ Впіймав саботажника — +1 бал
+😈 Саботажника не впіймали — він отримує +2 бали і пишається
+
+Хто набрав найбільше — переміг.
+Приз: повага компанії і право вибирати наступну гру.`;
 
 // ===== SOCKET.IO =====
 io.on('connection', (socket) => {
@@ -302,7 +315,8 @@ io.on('connection', (socket) => {
       usedStory: [], usedTransform: [], usedSabotage: [],
       lastFormat: null, currentPlayer: null,
       currentTask: null, currentFormat: null,
-      saboteurId: null, sabotageAction: null, sabotageHint: null,
+      currentOptions: [], correctIndex: 0,
+      saboteurId: null, sabotageHint: null,
       votes: {}, guesses: {}, saboteurGuesses: {},
       roundNum: 0, _timer: null
     };
@@ -345,47 +359,47 @@ io.on('connection', (socket) => {
     room.state = 'warmup';
     io.to(code).emit('gameStarted');
     room.players.forEach(p => {
-      const delay = 1000 + Math.random() * 6000;
+      const delay = 1000 + Math.random() * 5000;
       const msg = WARMUP[Math.floor(Math.random() * WARMUP.length)];
       setTimeout(() => { io.to(p.id).emit('warmupMessage', { message: msg }); }, delay);
     });
-    setTimeout(() => { startRound(code); }, 14000);
+    // Запускаємо раунд через 10 секунд
+    setTimeout(() => { startRound(code); }, 10000);
   });
 
-  // Активний гравець натиснув ПОЧИНАЮ — запускаємо таймер для всіх
   socket.on('playerStarted', ({ code }) => {
     const room = rooms[code];
     if (!room || room.currentPlayer !== socket.id) return;
     if (room.state !== 'readyToStart') return;
     room.state = 'round';
     const startTime = Date.now();
-    room.roundStartTime = startTime;
     io.to(code).emit('roundTimerStart', { startTime, duration: 90 });
+    // Сервер теж рахує таймер і запускає голосування
+    if (room._timer) clearTimeout(room._timer);
+    room._timer = setTimeout(() => {
+      if (room.state === 'round') startGuessing(code);
+    }, 92000);
   });
 
-  // Дострокове завершення (тільки хост)
   socket.on('endRoundEarly', ({ code }) => {
     const room = rooms[code];
     if (!room || room.host !== socket.id) return;
-    if (room.state !== 'round' && room.state !== 'readyToStart') return;
-    clearRoomTimer(room);
-    startGuessing(code);
-  });
-
-  // Вгадування заковирки/ролі
-  socket.on('submitGuess', ({ code, guessIndex }) => {
-    const room = rooms[code];
-    if (!room || room.state !== 'guessing') return;
-    if (room.currentPlayer === socket.id) return; // активний не вгадує
-    if (room.guesses[socket.id] !== undefined) return; // вже вгадав
-    room.guesses[socket.id] = guessIndex;
-    const eligible = room.players.filter(p => p.id !== room.currentPlayer);
-    if (Object.keys(room.guesses).length >= eligible.length) {
-      resolveGuessing(code);
+    if (room._timer) { clearTimeout(room._timer); room._timer = null; }
+    if (room.state === 'round' || room.state === 'readyToStart') {
+      startGuessing(code);
     }
   });
 
-  // Голосування 1-10
+  socket.on('submitGuess', ({ code, guessIndex }) => {
+    const room = rooms[code];
+    if (!room || room.state !== 'guessing') return;
+    if (room.currentPlayer === socket.id) return;
+    if (room.guesses[socket.id] !== undefined) return;
+    room.guesses[socket.id] = guessIndex;
+    const eligible = room.players.filter(p => p.id !== room.currentPlayer);
+    if (Object.keys(room.guesses).length >= eligible.length) resolveGuessing(code);
+  });
+
   socket.on('submitVote', ({ code, score }) => {
     const room = rooms[code];
     if (!room || room.state !== 'voting') return;
@@ -393,21 +407,16 @@ io.on('connection', (socket) => {
     if (room.votes[socket.id] !== undefined) return;
     room.votes[socket.id] = Number(score);
     const eligible = room.players.filter(p => p.id !== room.currentPlayer);
-    if (Object.keys(room.votes).length >= eligible.length) {
-      resolveVoting(code);
-    }
+    if (Object.keys(room.votes).length >= eligible.length) resolveVoting(code);
   });
 
-  // Вгадування саботажника
   socket.on('submitSaboteurGuess', ({ code, suspectId }) => {
     const room = rooms[code];
     if (!room || room.state !== 'saboteurGuessing') return;
     if (room.saboteurGuesses[socket.id] !== undefined) return;
     room.saboteurGuesses[socket.id] = suspectId;
     const eligible = room.players.filter(p => p.id !== room.saboteurId);
-    if (Object.keys(room.saboteurGuesses).length >= eligible.length) {
-      resolveSaboteurGuessing(code);
-    }
+    if (Object.keys(room.saboteurGuesses).length >= eligible.length) resolveSaboteurGuessing(code);
   });
 
   socket.on('nextRound', ({ code }) => {
@@ -427,10 +436,6 @@ io.on('connection', (socket) => {
   });
 });
 
-function clearRoomTimer(room) {
-  if (room._timer) { clearTimeout(room._timer); room._timer = null; }
-}
-
 function getNextFormat(room) {
   const formats = ['story', 'transform', 'sabotage'];
   const available = formats.filter(f => f !== room.lastFormat);
@@ -442,7 +447,6 @@ function getItem(room, format) {
   if (format === 'story') { all = STORIES; used = room.usedStory; key = 'usedStory'; }
   else if (format === 'transform') { all = TRANSFORMATIONS; used = room.usedTransform; key = 'usedTransform'; }
   else { all = SABOTAGE; used = room.usedSabotage; key = 'usedSabotage'; }
-
   const available = all.map((t, i) => ({ t, i })).filter(({ i }) => !used.includes(i));
   if (available.length === 0) { room[key] = []; return all[Math.floor(Math.random() * all.length)]; }
   const pick = available[Math.floor(Math.random() * available.length)];
@@ -459,11 +463,9 @@ function getNextPlayer(room) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-function buildOptions(correctTwist, fakes) {
-  // Перемішуємо правильну відповідь з підробками
-  const options = shuffle([correctTwist, ...fakes.slice(0, 3)]);
-  const correctIndex = options.indexOf(correctTwist);
-  return { options, correctIndex };
+function buildOptions(correct, fakes) {
+  const options = shuffle([correct, ...fakes.slice(0, 3)]);
+  return { options, correctIndex: options.indexOf(correct) };
 }
 
 function startRound(code) {
@@ -480,100 +482,71 @@ function startRound(code) {
   room.votes = {};
   room.saboteurGuesses = {};
   room.saboteurId = null;
-  room.sabotageAction = null;
   room.sabotageHint = null;
   room.roundNum++;
   player.callCount++;
   room.state = 'readyToStart';
+  if (room._timer) { clearTimeout(room._timer); room._timer = null; }
+
+  const formatLabel = format === 'story' ? '🎤 Історія' : format === 'transform' ? '🎭 Перевтілення' : '🃏 Саботаж';
 
   if (format === 'sabotage') {
     const item = getItem(room, 'sabotage');
     room.currentTask = item;
-
-    // Обираємо рандомного саботажника (не активного гравця)
-    const others = room.players.filter(p => p.id !== player.id);
-    const saboteur = others[Math.floor(Math.random() * others.length)];
-    room.saboteurId = saboteur.id;
-    room.sabotageAction = item.action;
     room.sabotageHint = item.hint;
 
-    // Активному гравцю — тема (без дії саботажника)
-    io.to(player.id).emit('roundReady', {
-      format: 'sabotage',
-      formatLabel: '🃏 Саботаж',
-      topic: 'Розкажи будь-що про своє останнє свято',
-      playerName: player.name,
-      roundNum: room.roundNum,
-      isMyturn: true
-    });
+    // Обираємо саботажника
+    const others = room.players.filter(p => p.id !== player.id);
+    if (others.length > 0) {
+      const saboteur = others[Math.floor(Math.random() * others.length)];
+      room.saboteurId = saboteur.id;
 
-    // Саботажнику — таємна інструкція
-    io.to(saboteur.id).emit('saboteurAssigned', {
-      action: item.action
-    });
+      // Саботажнику — таємна місія
+      io.to(saboteur.id).emit('saboteurAssigned', { action: item.action });
+    }
 
-    // Решті — просто чекають
+    // Всім — повідомлення про раунд
     room.players.forEach(p => {
-      if (p.id !== player.id && p.id !== saboteur.id) {
-        io.to(p.id).emit('roundReady', {
-          format: 'sabotage',
-          formatLabel: '🃏 Саботаж',
-          topic: null,
-          playerName: player.name,
-          roundNum: room.roundNum,
-          isMyturn: false
-        });
-      } else if (p.id === saboteur.id) {
-        io.to(p.id).emit('roundReady', {
-          format: 'sabotage',
-          formatLabel: '🃏 Саботаж',
-          topic: null,
-          playerName: player.name,
-          roundNum: room.roundNum,
-          isMyturn: false,
-          isSaboteur: true
-        });
-      }
+      const isMyturn = p.id === player.id;
+      const isSaboteur = p.id === room.saboteurId;
+      io.to(p.id).emit('roundReady', {
+        format: 'sabotage',
+        formatLabel,
+        topic: 'Розкажи будь-що цікаве про себе',
+        fullTask: null,
+        playerId: player.id,
+        playerName: player.name,
+        roundNum: room.roundNum,
+        isMyturn,
+        isSaboteur
+      });
     });
 
   } else {
     const item = getItem(room, format);
     room.currentTask = item;
-
     const twist = item.twist || item.role;
     const { options, correctIndex } = buildOptions(twist, item.fakes);
     room.currentOptions = options;
     room.correctIndex = correctIndex;
 
-    const formatLabel = format === 'story' ? '🎤 Історія' : '🎭 Перевтілення';
     const topicLabel = format === 'story'
       ? `${item.topic} — але...`
       : `${player.name} ${item.topic} — але як хтось конкретний...`;
 
-    // Активному гравцю — повне завдання
-    io.to(player.id).emit('roundReady', {
-      format,
-      formatLabel,
-      topic: topicLabel,
-      fullTask: twist,
-      playerName: player.name,
-      roundNum: room.roundNum,
-      isMyturn: true
-    });
-
-    // Іншим — тільки тема без заковирки
     room.players.forEach(p => {
-      if (p.id !== player.id) {
-        io.to(p.id).emit('roundReady', {
-          format,
-          formatLabel,
-          topic: topicLabel,
-          fullTask: null,
-          playerName: player.name,
-          roundNum: room.roundNum,
-          isMyturn: false
-        });
-      }
+      const isMyturn = p.id === player.id;
+      io.to(p.id).emit('roundReady', {
+        format,
+        formatLabel,
+        topic: topicLabel,
+        fullTask: isMyturn ? twist : null,
+        playerId: player.id,
+        playerName: player.name,
+        roundNum: room.roundNum,
+        isMyturn,
+        isSaboteur: false
+      });
     });
   }
 }
@@ -581,17 +554,15 @@ function startRound(code) {
 function startGuessing(code) {
   const room = rooms[code];
   if (!room) return;
-  clearRoomTimer(room);
+  if (room._timer) { clearTimeout(room._timer); room._timer = null; }
 
   if (room.currentFormat === 'sabotage') {
-    // При саботажі відразу переходимо до голосування
     room.state = 'voting';
     room.votes = {};
     const cp = room.players.find(p => p.id === room.currentPlayer);
     io.to(code).emit('showVoting', {
       currentPlayerId: room.currentPlayer,
-      currentPlayerName: cp ? cp.name : '',
-      afterSabotage: true
+      currentPlayerName: cp ? cp.name : ''
     });
   } else {
     room.state = 'guessing';
@@ -608,17 +579,12 @@ function resolveGuessing(code) {
   const room = rooms[code];
   if (!room) return;
 
-  let correctCount = 0;
   const results = {};
   room.players.forEach(p => {
     if (p.id === room.currentPlayer) return;
-    const guessed = room.guesses[p.id];
-    const correct = guessed === room.correctIndex;
+    const correct = room.guesses[p.id] === room.correctIndex;
     results[p.id] = correct;
-    if (correct) {
-      p.score += 1;
-      correctCount++;
-    }
+    if (correct) p.score += 1;
   });
 
   io.to(code).emit('guessingResult', {
@@ -628,17 +594,15 @@ function resolveGuessing(code) {
     players: room.players
   });
 
-  // Через 3 секунди переходимо до голосування
   setTimeout(() => {
     room.state = 'voting';
     room.votes = {};
     const cp = room.players.find(p => p.id === room.currentPlayer);
     io.to(code).emit('showVoting', {
       currentPlayerId: room.currentPlayer,
-      currentPlayerName: cp ? cp.name : '',
-      afterSabotage: false
+      currentPlayerName: cp ? cp.name : ''
     });
-  }, 3000);
+  }, 4000);
 }
 
 function resolveVoting(code) {
@@ -651,10 +615,8 @@ function resolveVoting(code) {
   if (player) player.score += Math.round(avg);
 
   if (room.currentFormat === 'sabotage') {
-    // Після голосування — вгадування саботажника
     room.state = 'saboteurGuessing';
     room.saboteurGuesses = {};
-    const saboteur = room.players.find(p => p.id === room.saboteurId);
     io.to(code).emit('showSaboteurGuessing', {
       hint: room.sabotageHint,
       players: room.players,
@@ -664,10 +626,9 @@ function resolveVoting(code) {
     });
   } else {
     room.state = 'result';
-    const cp = room.players.find(p => p.id === room.currentPlayer);
     io.to(code).emit('roundResult', {
       avgScore: rounded,
-      playerName: cp ? cp.name : '',
+      playerName: player ? player.name : '',
       players: room.players
     });
   }
@@ -676,28 +637,18 @@ function resolveVoting(code) {
 function resolveSaboteurGuessing(code) {
   const room = rooms[code];
   if (!room) return;
-
   const saboteur = room.players.find(p => p.id === room.saboteurId);
   let caughtCount = 0;
-
   room.players.forEach(p => {
     if (p.id === room.saboteurId) return;
-    if (room.saboteurGuesses[p.id] === room.saboteurId) {
-      p.score += 1;
-      caughtCount++;
-    }
+    if (room.saboteurGuesses[p.id] === room.saboteurId) { p.score += 1; caughtCount++; }
   });
-
-  // Якщо саботажника не впіймали — він отримує 2 бали
-  if (caughtCount === 0 && saboteur) {
-    saboteur.score += 2;
-  }
-
+  if (caughtCount === 0 && saboteur) saboteur.score += 2;
   room.state = 'result';
   io.to(code).emit('saboteurResult', {
     saboteurId: room.saboteurId,
     saboteurName: saboteur ? saboteur.name : '',
-    action: room.sabotageAction,
+    action: room.currentTask ? room.currentTask.action : '',
     caught: caughtCount > 0,
     players: room.players
   });
@@ -707,9 +658,7 @@ function endGame(code) {
   const room = rooms[code];
   if (!room) return;
   room.state = 'finished';
-  io.to(code).emit('gameEnded', {
-    players: [...room.players].sort((a, b) => b.score - a.score)
-  });
+  io.to(code).emit('gameEnded', { players: [...room.players].sort((a, b) => b.score - a.score) });
 }
 
 const PORT = process.env.PORT || 3000;
