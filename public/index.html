@@ -55,14 +55,24 @@
       <div class="room-code" id="displayCode">EFIR-XXXX</div>
       <span class="field-label" style="margin-top:20px;">// Гравці</span>
       <div class="players-chips" id="playersChips"></div>
-      <div id="host-controls" style="display:none;margin-top:24px;">
+      <div class="ready-count-wrap">
+        <div class="ready-count" id="readyCount">Готові: 0 / 0</div>
+      </div>
+
+      <!-- ХОСТ -->
+      <div id="host-controls" style="display:none;margin-top:20px;">
         <div class="start-btn-wrap">
           <button class="btn-start" id="startBtn">ПОЧАТИ ГРУ 🚀</button>
         </div>
-        <div class="start-hint">Натисни коли всі зайшли</div>
+        <div class="start-hint">Натисни коли всі готові</div>
       </div>
-      <div id="guest-waiting" style="margin-top:24px;">
-        <div class="waiting-text">⏳ Очікуємо хоста...</div>
+
+      <!-- ГІСТЬ -->
+      <div id="guest-controls" style="display:none;margin-top:20px;">
+        <div class="start-btn-wrap">
+          <button class="btn-start btn-ready" id="readyBtn">Я ГОТОВИЙ 🙋</button>
+        </div>
+        <div class="start-hint">Натисни щоб підтвердити готовність</div>
       </div>
     </div>
   </div>
@@ -145,7 +155,7 @@
   <div class="round-wrap">
     <div class="task-header">
       <div class="round-pill" id="duelRoundPill">Питання 1/3</div>
-      <div class="duel-vs-pill" id="duelVsPill">⚡ ДУЕЛЬ</div>
+      <div class="duel-vs-pill">⚡ ДУЕЛЬ</div>
     </div>
     <div class="timer-wrap">
       <div class="timer-track"><div class="timer-fill" id="duelTimerFill"></div></div>
@@ -154,7 +164,7 @@
         <span class="timer-val" id="duelTimerVal">0:45</span>
       </div>
     </div>
-    <div class="duel-answering-card" id="duelAnsweringCard">
+    <div class="duel-answering-card">
       <div class="duel-answering-label">Зараз відповідає</div>
       <div class="duel-answering-name" id="duelAnsweringName">Олег</div>
     </div>
