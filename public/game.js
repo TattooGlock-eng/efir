@@ -4,57 +4,49 @@ let myName = '', myRoomCode = '', isHost = false, myId = '';
 let players = [], currentPlayerId = '', secondPlayerId = '';
 let timerInterval = null, btnBehavior = 'angry', btnClickCount = 0, myScore = 0;
 let selectedDuelVote = null, rules = '';
+let readyBtnClicks = 0, readyBtnBehavior = 'angry';
 
 // ===== УТИЛІТИ =====
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-
 function getAvatarClass(i) { return `av-${i % 8}`; }
 function getInitial(name) { return name.charAt(0).toUpperCase(); }
-
 function formatTime(sec) {
   if (sec <= 0) return '0:00';
   return `${Math.floor(sec/60)}:${(sec%60).toString().padStart(2,'0')}`;
 }
-
 function showError(msg) {
   const el = document.getElementById('error-msg');
+  if (!el) return;
   el.textContent = msg;
   setTimeout(() => { el.textContent = ''; }, 3000);
 }
 
-// ===== ТАЙМЕР (синхронізований з сервером) =====
-function startSyncTimer(startTime, duration, fillId, valId, onEnd) {
+// ===== ТАЙМЕР =====
+function startSyncTimer(startTime, duration, fillId, valId) {
   clearInterval(timerInterval);
   const fill = document.getElementById(fillId);
   const val = document.getElementById(valId);
-
   function tick() {
     const elapsed = (Date.now() - startTime) / 1000;
     const remaining = Math.max(0, duration - elapsed);
     const pct = (remaining / duration) * 100;
-    if (fill) fill.style.width = pct + '%';
-    if (val) val.textContent = formatTime(Math.ceil(remaining));
-
     if (fill) {
+      fill.style.width = pct + '%';
       if (remaining <= 10) fill.style.background = 'linear-gradient(90deg,#FF6B35,#ff1a1a)';
       else if (remaining <= 30) fill.style.background = 'linear-gradient(90deg,#FFD93D,#FF6B35)';
       else fill.style.background = 'linear-gradient(90deg,#95E1A3,#4ECDC4)';
     }
-
-    if (remaining <= 0) {
-      clearInterval(timerInterval);
-      if (onEnd) onEnd();
-    }
+    if (val) val.textContent = formatTime(Math.ceil(remaining));
+    if (remaining <= 0) clearInterval(timerInterval);
   }
-
   tick();
   timerInterval = setInterval(tick, 500);
 }
 
-// ===== КНОПКИ З ПРИКОЛАМИ =====
+// ===== КНОПКИ З ПРИКОЛАМИ (спільна логіка) =====
 const BUTTON_TEXTS = {
   run: ['ПОЧАТИ ГРУ 🚀','ЕЙ СТІЙ!','НЕ ЖЕНИ!','ОК ДОБРЕ 🚀'],
   angry: ['ПОЧАТИ ГРУ 🚀','ТИ МЕНІ НЕ ТИКАЙ','СКАЗАЛА НІ!','НУ І ЩО ТИ ЗРОБИШ?','ОК ЗАПУСКАЮ 😤'],
@@ -62,7 +54,7 @@ const BUTTON_TEXTS = {
   lie: ['ПОЧАТИ ГРУ 🚀','ОБМАНУЛА ХА-ХА 😝','ЗАРАЗ ЗАПУЩУ... НІ','ОК РЕАЛЬНО ЗАПУСКАЮ'],
   flirt: ['ПОЧАТИ ГРУ 🚀','СПОЧАТКУ СКАЖИ ЩО Я ГАРНА','ЛАДНО ТАК І БУТИ 😏'],
   melt: ['ПОЧАТИ ГРУ 🚀','я.. тану.. 🫠','ок зібралась 🚀'],
-  panic: ['ПОЧАТИ ГРУ 🚀','НЕ НАТИСКАЙ!!','СТІЙ!','ОЙ ВСЕ ОДНО НАТИСНУВ 😱'],
+  panic: ['ПОЧАТИ ГРУ 🚀','НЕ НАТИСКАЙ!!','СТІЙ!','ОЙ ВСЕ ОДНО 😱'],
   flip: ['ПОЧАТИ ГРУ 🚀','ʞɔɐq ǝɯ pɐǝɹ','ЗАПУСКАЮ 🚀'],
   disappear: ['ПОЧАТИ ГРУ 🚀','...','ТУТ Я!','ЗАПУСКАЮ 🚀'],
   joke: ['ПОЧАТИ ГРУ 🚀','ЧЕКАЙ АНЕКДОТ!','ЧОМУ КНОПКА НЕ СМІЄТЬСЯ? БО ЇЇ НАТИСКАЮТЬ 😂','ЗАПУСКАЮ 🚀'],
@@ -73,88 +65,101 @@ const BUTTON_TEXTS = {
   confirm: ['ПОЧАТИ ГРУ 🚀','ТИ ВПЕВНЕНИЙ?','ТОЧНО?','НУ ДОБРЕ 🚀']
 };
 
+// Тексти для кнопки "Я ГОТОВИЙ" гостей
+const READY_TEXTS = {
+  run: ['Я ГОТОВИЙ 🙋','ЩЕ НІ!','МАЙЖЕ!','ОК ГОТОВИЙ 🙋'],
+  angry: ['Я ГОТОВИЙ 🙋','ТА ЯК Я МОЖУ БУТИ ГОТОВИМ','НУ ДОБРЕ 🙋'],
+  cry: ['Я ГОТОВИЙ 🙋','Я БОЮСЬ 🥺','ОК ОК ГОТОВИЙ 😭'],
+  lie: ['Я ГОТОВИЙ 🙋','НЕ ГОТОВИЙ ХА-ХА','ОК РЕАЛЬНО ГОТОВИЙ 🙋'],
+  flirt: ['Я ГОТОВИЙ 🙋','ЗАЛЕЖИТЬ ВІД ЗАВДАННЯ 😏','ДОБРЕ 🙋'],
+  melt: ['Я ГОТОВИЙ 🙋','я.. тану від хвилювання 🫠','зібрався 🙋'],
+  panic: ['Я ГОТОВИЙ 🙋','НЕ ГОТОВИЙ!!','ОЙ ВСЕ ОДНО 😱','ГОТОВИЙ 🙋'],
+  flip: ['Я ГОТОВИЙ 🙋','ʎoʇoƃ ʎ','ГОТОВИЙ 🙋'],
+  disappear: ['Я ГОТОВИЙ 🙋','...','ТУТ Я!','ГОТОВИЙ 🙋'],
+  joke: ['Я ГОТОВИЙ 🙋','ЧЕКАЙ АНЕКДОТ!','ГОТОВИЙ БО ХОЧУ ВИГРАТИ 😂','ГОТОВИЙ 🙋'],
+  broken: ['Я ГОТОВИЙ 🙋','ПМИЛКА 404','ВСЕ ОК','ГОТОВИЙ 🙋'],
+  password: ['Я ГОТОВИЙ 🙋','ВВЕДИ ПАРОЛЬ:','НЕПРАВИЛЬНО','ГОТОВИЙ 🙋'],
+  countdown: ['Я ГОТОВИЙ 🙋','3...','2...','1...','НІ! 😈','ГОТОВИЙ 🙋'],
+  regret: ['Я ГОТОВИЙ 🙋','ГОТОВИЙ... ШКОДУЮ','АЛЕ ОК 🙋'],
+  confirm: ['Я ГОТОВИЙ 🙋','ТИ ВПЕВНЕНИЙ ЩО Я ГОТОВИЙ?','ДОБРЕ 🙋']
+};
+
+function handlePrankBtn(btn, behavior, texts, onDone, clicksRef) {
+  if (behavior === 'run') {
+    if (clicksRef.count < 3) {
+      btn.classList.remove('running'); void btn.offsetWidth; btn.classList.add('running');
+      btn.textContent = texts[Math.min(clicksRef.count + 1, texts.length - 2)];
+      clicksRef.count++;
+      const maxX = 80;
+      btn.style.position = 'relative';
+      btn.style.left = (Math.random() * maxX - maxX / 2) + 'px';
+      btn.style.top = (Math.random() * 40 - 20) + 'px';
+    } else {
+      btn.style.left = '0'; btn.style.top = '0';
+      btn.textContent = texts[texts.length - 1];
+      setTimeout(onDone, 400);
+    }
+    return;
+  }
+  if (behavior === 'melt') {
+    if (clicksRef.count === 0) {
+      btn.classList.add('melting'); btn.textContent = texts[1]; clicksRef.count++;
+      setTimeout(() => { btn.classList.remove('melting'); btn.textContent = texts[2]; }, 1000);
+    } else { onDone(); }
+    return;
+  }
+  if (behavior === 'flip') {
+    if (clicksRef.count === 0) {
+      btn.classList.add('flipping'); btn.textContent = texts[1]; clicksRef.count++;
+      setTimeout(() => { btn.classList.remove('flipping'); btn.textContent = texts[2]; }, 600);
+    } else { onDone(); }
+    return;
+  }
+  if (behavior === 'disappear') {
+    if (clicksRef.count === 0) {
+      btn.classList.add('blinking'); btn.textContent = texts[1]; clicksRef.count++;
+      setTimeout(() => { btn.classList.remove('blinking'); btn.textContent = texts[2]; }, 1200);
+    } else if (clicksRef.count === 1) {
+      btn.textContent = texts[3]; clicksRef.count++;
+      setTimeout(onDone, 300);
+    }
+    return;
+  }
+  if (behavior === 'regret') {
+    if (clicksRef.count === 0) {
+      btn.textContent = texts[1]; clicksRef.count++;
+      setTimeout(() => { btn.textContent = texts[2]; clicksRef.count++; }, 1500);
+    } else if (clicksRef.count >= 2) { onDone(); }
+    return;
+  }
+  if (behavior === 'password') {
+    if (clicksRef.count === 0) { btn.textContent = texts[1]; clicksRef.count++; }
+    else if (clicksRef.count === 1) {
+      btn.textContent = texts[2]; clicksRef.count++;
+      setTimeout(() => { btn.textContent = texts[3]; clicksRef.count++; }, 1000);
+    } else if (clicksRef.count >= 3) { onDone(); }
+    return;
+  }
+  // Default: sequential texts
+  if (['angry','panic'].includes(behavior)) {
+    btn.classList.remove('shaking'); void btn.offsetWidth; btn.classList.add('shaking');
+  }
+  if (behavior === 'broken') {
+    if (clicksRef.count === 1) { btn.style.background = '#999'; btn.style.transform = 'skew(-5deg)'; }
+    else if (clicksRef.count === 2) { btn.style.background = ''; btn.style.transform = ''; }
+  }
+  if (clicksRef.count < texts.length - 1) {
+    btn.textContent = texts[clicksRef.count + 1]; clicksRef.count++;
+  } else { onDone(); }
+}
+
+// ===== ХОСТ: кнопка ПОЧАТИ ГРУ =====
+const hostBtnClicks = { count: 0 };
+
 function handleStartBtn() {
   const btn = document.getElementById('startBtn');
   const texts = BUTTON_TEXTS[btnBehavior] || BUTTON_TEXTS['angry'];
-
-  if (btnBehavior === 'run') {
-    if (btnClickCount < 3) {
-      btn.classList.remove('running'); void btn.offsetWidth; btn.classList.add('running');
-      btn.textContent = texts[Math.min(btnClickCount+1, texts.length-2)];
-      btnClickCount++;
-      const wrap = btn.parentElement;
-      const maxX = (wrap.offsetWidth - btn.offsetWidth - 20) || 80;
-      btn.style.position = 'relative';
-      btn.style.left = (Math.random()*maxX - maxX/2) + 'px';
-      btn.style.top = (Math.random()*40 - 20) + 'px';
-    } else {
-      btn.style.left='0'; btn.style.top='0';
-      btn.textContent = texts[texts.length-1];
-      setTimeout(reallyStart, 500);
-    }
-    return;
-  }
-
-  if (['angry','cry','lie','flirt','joke','broken','countdown','confirm'].includes(btnBehavior)) {
-    if (btnBehavior === 'angry' || btnBehavior === 'panic') {
-      btn.classList.remove('shaking'); void btn.offsetWidth; btn.classList.add('shaking');
-    }
-    if (btnBehavior === 'broken' && btnClickCount === 1) {
-      btn.style.background='#999'; btn.style.transform='skew(-5deg)';
-    } else if (btnBehavior === 'broken' && btnClickCount === 2) {
-      btn.style.background=''; btn.style.transform='';
-    }
-    if (btnClickCount < texts.length-1) {
-      btn.textContent = texts[btnClickCount+1]; btnClickCount++;
-    } else { reallyStart(); }
-    return;
-  }
-
-  if (btnBehavior === 'melt') {
-    if (btnClickCount === 0) {
-      btn.classList.add('melting'); btn.textContent = texts[1]; btnClickCount++;
-      setTimeout(() => { btn.classList.remove('melting'); btn.textContent = texts[2]; }, 1000);
-    } else { reallyStart(); }
-    return;
-  }
-
-  if (btnBehavior === 'flip') {
-    if (btnClickCount === 0) {
-      btn.classList.add('flipping'); btn.textContent = texts[1]; btnClickCount++;
-      setTimeout(() => { btn.classList.remove('flipping'); btn.textContent = texts[2]; }, 600);
-    } else { reallyStart(); }
-    return;
-  }
-
-  if (btnBehavior === 'disappear') {
-    if (btnClickCount === 0) {
-      btn.classList.add('blinking'); btn.textContent = texts[1]; btnClickCount++;
-      setTimeout(() => { btn.classList.remove('blinking'); btn.textContent = texts[2]; }, 1200);
-    } else if (btnClickCount === 1) {
-      btn.textContent = texts[3]; btnClickCount++;
-      setTimeout(reallyStart, 300);
-    }
-    return;
-  }
-
-  if (btnBehavior === 'password') {
-    if (btnClickCount === 0) { btn.textContent = texts[1]; btnClickCount++; }
-    else if (btnClickCount === 1) {
-      btn.textContent = texts[2]; btnClickCount++;
-      setTimeout(() => { btn.textContent = texts[3]; btnClickCount++; }, 1000);
-    } else if (btnClickCount >= 3) { reallyStart(); }
-    return;
-  }
-
-  if (btnBehavior === 'regret') {
-    if (btnClickCount === 0) {
-      btn.textContent = texts[1]; btnClickCount++;
-      setTimeout(() => { btn.textContent = texts[2]; btnClickCount++; }, 1500);
-    } else if (btnClickCount >= 2) { reallyStart(); }
-    return;
-  }
-
-  reallyStart();
+  handlePrankBtn(btn, btnBehavior, texts, reallyStart, hostBtnClicks);
 }
 
 function reallyStart() {
@@ -162,6 +167,25 @@ function reallyStart() {
   btn.textContent = 'ЗАПУСКАЄМО... 🎉';
   btn.disabled = true;
   socket.emit('startGame', { code: myRoomCode });
+}
+
+// ===== ГІСТЬ: кнопка Я ГОТОВИЙ =====
+const guestBtnClicks = { count: 0 };
+let guestReady = false;
+
+function handleReadyBtn() {
+  if (guestReady) return;
+  const btn = document.getElementById('readyBtn');
+  const texts = READY_TEXTS[btnBehavior] || READY_TEXTS['angry'];
+  handlePrankBtn(btn, btnBehavior, texts, () => {
+    // Після приколу — реально готовий
+    guestReady = true;
+    btn.textContent = '✅ ГОТОВИЙ!';
+    btn.style.background = 'var(--green)';
+    btn.style.color = 'var(--dark)';
+    btn.disabled = true;
+    socket.emit('playerReady', { code: myRoomCode });
+  }, guestBtnClicks);
 }
 
 // ===== ВХІД =====
@@ -177,15 +201,18 @@ document.getElementById('joinBtn').addEventListener('click', () => {
   const code = document.getElementById('roomCode').value.trim().toUpperCase();
   if (!name) { showError("Введи своє ім'я!"); return; }
   if (!code) { showError('Введи код кімнати!'); return; }
-  myName = name; myRoomCode = code;
+  myName = name;
   socket.emit('joinRoom', { name, code });
 });
 
+document.getElementById('playerName').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('joinBtn').click(); });
+document.getElementById('roomCode').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('joinBtn').click(); });
+
+// Правила
 document.getElementById('rulesBtn').addEventListener('click', () => {
-  document.getElementById('rulesText').textContent = rules || 'Правила завантажуються...';
+  document.getElementById('rulesText').textContent = rules || 'Завантаження...';
   showScreen('screen-rules');
 });
-
 document.getElementById('closeRulesBtn').addEventListener('click', () => { showScreen('screen-enter'); });
 
 // ===== SOCKET EVENTS =====
@@ -195,7 +222,7 @@ socket.on('roomCreated', ({ code, btnBehavior: bh, rules: r }) => {
   myRoomCode = code; isHost = true; btnBehavior = bh; rules = r;
   document.getElementById('displayCode').textContent = code;
   document.getElementById('host-controls').style.display = 'block';
-  document.getElementById('guest-waiting').style.display = 'none';
+  document.getElementById('guest-controls').style.display = 'none';
   document.getElementById('startBtn').addEventListener('click', handleStartBtn);
   showScreen('screen-button');
 });
@@ -204,7 +231,14 @@ socket.on('joinedRoom', ({ code, btnBehavior: bh, rules: r }) => {
   myRoomCode = code; isHost = false; btnBehavior = bh; rules = r;
   document.getElementById('displayCode').textContent = code;
   document.getElementById('host-controls').style.display = 'none';
-  document.getElementById('guest-waiting').style.display = 'block';
+  document.getElementById('guest-controls').style.display = 'block';
+
+  // Налаштовуємо кнопку гостя з приколом
+  const readyBtn = document.getElementById('readyBtn');
+  const texts = READY_TEXTS[bh] || READY_TEXTS['angry'];
+  readyBtn.textContent = texts[0];
+  readyBtn.addEventListener('click', handleReadyBtn);
+
   showScreen('screen-button');
 });
 
@@ -217,12 +251,18 @@ socket.on('updatePlayers', (updated) => {
   container.innerHTML = '';
   players.forEach((p, i) => {
     const chip = document.createElement('div');
-    chip.className = `player-chip chip-${i%6}`;
-    chip.textContent = p.name;
+    chip.className = `player-chip chip-${i % 6}`;
+    chip.innerHTML = `${p.name} ${p.ready ? '✅' : '⏳'}`;
     container.appendChild(chip);
   });
 });
 
+socket.on('readyUpdate', ({ readyCount, total }) => {
+  const el = document.getElementById('readyCount');
+  if (el) el.textContent = `Готові: ${readyCount} / ${total}`;
+});
+
+// ===== РОЗІГРІВ =====
 socket.on('gameStarted', () => {
   showScreen('screen-warmup');
   document.getElementById('warmupCard').style.display = 'none';
@@ -230,12 +270,15 @@ socket.on('gameStarted', () => {
 });
 
 socket.on('warmupMessage', ({ message }) => {
+  // Показуємо повідомлення — воно НЕ закривається само
   document.getElementById('warmupText').textContent = message;
   document.getElementById('warmupCard').style.display = 'block';
   document.getElementById('warmupWaiting').style.display = 'none';
 });
 
 document.getElementById('warmupOkBtn').addEventListener('click', () => {
+  // Тільки ховаємо картку — не переходимо на інший екран
+  // Гравець залишається на розігріві і чекає поки сервер запустить раунд
   document.getElementById('warmupCard').style.display = 'none';
   document.getElementById('warmupWaiting').style.display = 'block';
 });
@@ -261,18 +304,16 @@ socket.on('roundStarted', ({ playerName, playerId, format, formatLabel, task, ro
   badge.className = `format-badge format-${format}`;
 
   document.getElementById('taskText').textContent = task;
-  document.getElementById('timerFill').style.background = 'linear-gradient(90deg,#95E1A3,#4ECDC4)';
-
   document.getElementById('my-turn-actions').style.display = isMyTurn ? 'block' : 'none';
   document.getElementById('others-actions').style.display = isMyTurn ? 'none' : 'block';
   document.getElementById('host-end-round').style.display = isHost ? 'block' : 'none';
 
   if (isMyTurn) {
     document.getElementById('skipsLeft').textContent = `${skipsLeft} пропуски`;
-    document.getElementById('skipBtn').disabled = skipsLeft <= 0;
+    document.getElementById('skipBtn').disabled = false;
   }
 
-  startSyncTimer(startTime, duration, 'timerFill', 'timerVal', null);
+  startSyncTimer(startTime, duration, 'timerFill', 'timerVal');
   showScreen('screen-round');
 });
 
@@ -296,7 +337,7 @@ document.getElementById('endRoundBtn').addEventListener('click', () => {
 });
 
 // ===== ДУЕЛЬ =====
-socket.on('duelStarted', ({ player1, player2, roundNum }) => {
+socket.on('duelStarted', ({ player1, player2 }) => {
   clearInterval(timerInterval);
   currentPlayerId = player1.id;
   secondPlayerId = player2.id;
@@ -304,18 +345,15 @@ socket.on('duelStarted', ({ player1, player2, roundNum }) => {
   showScreen('screen-duel-announce');
 });
 
-socket.on('duelQuestion', ({ question, questionNum, totalQuestions, firstPlayer, secondPlayer, answeringId, duration, startTime }) => {
+socket.on('duelQuestion', ({ question, questionNum, totalQuestions, firstPlayer, answeringId, duration, startTime }) => {
   document.getElementById('duelRoundPill').textContent = `Питання ${questionNum}/${totalQuestions}`;
   document.getElementById('duelQuestionText').textContent = question;
   document.getElementById('duelAnsweringName').textContent = firstPlayer.name;
-
   const isMyTurn = answeringId === myId;
   document.getElementById('duel-my-turn').style.display = isMyTurn ? 'block' : 'none';
   document.getElementById('duel-others-turn').style.display = isMyTurn ? 'none' : 'block';
   document.getElementById('host-end-duel').style.display = isHost ? 'block' : 'none';
-
-  document.getElementById('duelTimerFill').style.background = 'linear-gradient(90deg,#95E1A3,#4ECDC4)';
-  startSyncTimer(startTime, duration, 'duelTimerFill', 'duelTimerVal', null);
+  startSyncTimer(startTime, duration, 'duelTimerFill', 'duelTimerVal');
   showScreen('screen-duel-question');
 });
 
@@ -324,8 +362,7 @@ socket.on('duelSecondAnswer', ({ answeringId, answeringName, duration, startTime
   const isMyTurn = answeringId === myId;
   document.getElementById('duel-my-turn').style.display = isMyTurn ? 'block' : 'none';
   document.getElementById('duel-others-turn').style.display = isMyTurn ? 'none' : 'block';
-  document.getElementById('duelTimerFill').style.background = 'linear-gradient(90deg,#95E1A3,#4ECDC4)';
-  startSyncTimer(startTime, duration, 'duelTimerFill', 'duelTimerVal', null);
+  startSyncTimer(startTime, duration, 'duelTimerFill', 'duelTimerVal');
 });
 
 document.getElementById('endDuelBtn').addEventListener('click', () => {
@@ -337,7 +374,6 @@ socket.on('duelVoting', ({ player1, player2 }) => {
   selectedDuelVote = null;
   const container = document.getElementById('duelVoteOptions');
   container.innerHTML = '';
-
   const isParticipant = myId === player1.id || myId === player2.id;
 
   if (isParticipant) {
@@ -348,7 +384,6 @@ socket.on('duelVoting', ({ player1, player2 }) => {
     document.getElementById('submitDuelVoteBtn').style.display = 'block';
     document.getElementById('submitDuelVoteBtn').disabled = true;
     document.getElementById('duel-voted-waiting').style.display = 'none';
-
     [player1, player2].forEach((p, i) => {
       const opt = document.createElement('div');
       opt.className = 'duel-vote-option';
@@ -366,7 +401,6 @@ socket.on('duelVoting', ({ player1, player2 }) => {
       container.appendChild(opt);
     });
   }
-
   showScreen('screen-duel-vote');
 });
 
@@ -377,12 +411,12 @@ document.getElementById('submitDuelVoteBtn').addEventListener('click', () => {
   document.getElementById('duel-voted-waiting').style.display = 'block';
 });
 
-socket.on('duelResult', ({ winnerId, votes, players: updated }) => {
+socket.on('duelResult', ({ winnerId, players: updated }) => {
   players = updated;
   const winner = updated.find(p => p.id === winnerId);
   const isWinner = winnerId === myId;
   document.getElementById('resultEmoji').textContent = isWinner ? '🏆' : '👏';
-  document.getElementById('resultTitle').textContent = isWinner ? 'Ти переміг у дуелі!' : `Переможець дуелі: ${winner ? winner.name : 'Нічия'}`;
+  document.getElementById('resultTitle').textContent = isWinner ? 'Ти переміг у дуелі!' : `Переможець: ${winner ? winner.name : 'Нічия'}`;
   document.getElementById('resultScore').textContent = '';
   renderScoreList(updated);
   document.getElementById('host-next').style.display = isHost ? 'block' : 'none';
@@ -394,7 +428,6 @@ socket.on('duelResult', ({ winnerId, votes, players: updated }) => {
 socket.on('showVoting', ({ currentPlayerId: cpId, currentPlayerName }) => {
   clearInterval(timerInterval);
   const isMyTurn = cpId === myId;
-
   if (isMyTurn) {
     document.getElementById('scoreSliderWrap').style.display = 'none';
     document.getElementById('submitVoteBtn').style.display = 'none';
@@ -409,11 +442,10 @@ socket.on('showVoting', ({ currentPlayerId: cpId, currentPlayerName }) => {
     document.getElementById('scoreSlider').value = 5;
     document.getElementById('scoreDisplay').textContent = '5';
   }
-
   showScreen('screen-vote');
 });
 
-document.getElementById('scoreSlider').addEventListener('input', (e) => {
+document.getElementById('scoreSlider').addEventListener('input', e => {
   document.getElementById('scoreDisplay').textContent = e.target.value;
 });
 
@@ -445,11 +477,11 @@ function renderScoreList(playerList) {
   const container = document.getElementById('scoreList');
   container.innerHTML = '';
   sorted.forEach((p, i) => {
-    const pct = maxScore > 0 ? (p.score/maxScore)*100 : 0;
+    const pct = maxScore > 0 ? (p.score / maxScore) * 100 : 0;
     const row = document.createElement('div');
     row.className = 'score-row';
     row.innerHTML = `
-      <div class="score-rank">${medals[i]||(i+1)+'.'}</div>
+      <div class="score-rank">${medals[i] || (i+1)+'.'}  </div>
       <div class="score-bar-wrap">
         <div class="score-player-name">${p.name}</div>
         <div class="score-bar-track"><div class="score-bar-fill" style="width:${pct}%;background:${colors[i%colors.length]}"></div></div>
@@ -474,7 +506,7 @@ socket.on('gameEnded', ({ players: final }) => {
     const row = document.createElement('div');
     row.className = 'final-row';
     row.innerHTML = `
-      <div class="final-rank">${medals[i]||'🎖️'}</div>
+      <div class="final-rank">${medals[i] || '🎖️'}</div>
       <div class="final-name">${p.name}</div>
       <div class="final-score" style="color:${colors[i%colors.length]}">${p.score} ⭐</div>
     `;
