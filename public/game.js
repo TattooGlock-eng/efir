@@ -1,12 +1,14 @@
 const socket = io();
 
 let myName = '', myRoomCode = '', isHost = false, myId = '';
-let players = [], currentPlayerId = '', secondPlayerId = '';
+let players = [], currentPlayerId = '';
 let timerInterval = null, btnBehavior = 'angry', myScore = 0;
-let selectedDuelVote = null, rules = '';
-let guestReady = false;
+let rules = '', guestReady = false;
+let selectedGuess = null, selectedSaboteur = null;
+let currentFormat = null, currentRoundNum = 0;
+let myFullTask = null, mySaboteurAction = null, iAmSaboteur = false;
+let currentPlayerName = '';
 
-// ===== УТИЛІТИ =====
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -24,7 +26,6 @@ function showError(msg) {
   setTimeout(() => { el.textContent = ''; }, 3000);
 }
 
-// ===== ТАЙМЕР =====
 function startSyncTimer(startTime, duration, fillId, valId) {
   clearInterval(timerInterval);
   const fill = document.getElementById(fillId);
@@ -48,45 +49,44 @@ function startSyncTimer(startTime, duration, fillId, valId) {
 
 // ===== КНОПКИ З ПРИКОЛАМИ =====
 const BUTTON_TEXTS = {
-  run: ['ПОЧАТИ ГРУ 🚀', 'ЕЙ СТІЙ!', 'НЕ ЖЕНИ!', 'ОК ДОБРЕ 🚀'],
-  angry: ['ПОЧАТИ ГРУ 🚀', 'ТИ МЕНІ НЕ ТИКАЙ', 'СКАЗАЛА НІ!', 'НУ І ЩО ТИ ЗРОБИШ?', 'ОК ЗАПУСКАЮ 😤'],
-  cry: ['ПОЧАТИ ГРУ 🚀', 'НЕВЖЕ ТИ НАТИСНЕШ? 🥺', 'МЕНІ БОЛЯЧЕ...', 'ОК ОК ЗАПУСКАЮ 😭'],
-  lie: ['ПОЧАТИ ГРУ 🚀', 'ОБМАНУЛА ХА-ХА 😝', 'ЗАРАЗ ЗАПУЩУ... НІ', 'ОК РЕАЛЬНО ЗАПУСКАЮ'],
-  flirt: ['ПОЧАТИ ГРУ 🚀', 'СПОЧАТКУ СКАЖИ ЩО Я ГАРНА', 'ЛАДНО ТАК І БУТИ 😏'],
-  melt: ['ПОЧАТИ ГРУ 🚀', 'я.. тану.. 🫠', 'ок зібралась 🚀'],
-  panic: ['ПОЧАТИ ГРУ 🚀', 'НЕ НАТИСКАЙ!!', 'СТІЙ!', 'ОЙ ВСЕ ОДНО 😱'],
-  flip: ['ПОЧАТИ ГРУ 🚀', 'ʞɔɐq ǝɯ pɐǝɹ', 'ЗАПУСКАЮ 🚀'],
-  disappear: ['ПОЧАТИ ГРУ 🚀', '...', 'ТУТ Я!', 'ЗАПУСКАЮ 🚀'],
-  joke: ['ПОЧАТИ ГРУ 🚀', 'ЧЕКАЙ АНЕКДОТ!', 'ЧОМУ КНОПКА НЕ СМІЄТЬСЯ? БО ЇЇ НАТИСКАЮТЬ 😂', 'ЗАПУСКАЮ 🚀'],
-  broken: ['ПОЧАТИ ГРУ 🚀', 'ПМИЛКА 404', 'Ж@#ТУЮ ВСЕ ОК', 'ЗАПУСКАЮ 🚀'],
-  password: ['ПОЧАТИ ГРУ 🚀', 'ВВЕДИ ПАРОЛЬ:', 'НЕПРАВИЛЬНО', 'ЛАДНО ПУСКАЮ 🚀'],
-  countdown: ['ПОЧАТИ ГРУ 🚀', '3...', '2...', '1...', 'НІ! 😈', 'ЗАПУСКАЮ 🚀'],
-  regret: ['ПОЧАТИ ГРУ 🚀', 'ЗАПУСТИЛА... ШКОДУЮ', 'АЛЕ ОК 🚀'],
-  confirm: ['ПОЧАТИ ГРУ 🚀', 'ТИ ВПЕВНЕНИЙ?', 'ТОЧНО?', 'НУ ДОБРЕ 🚀']
+  run: ['ПОЧАТИ ГРУ 🚀','ЕЙ СТІЙ!','НЕ ЖЕНИ!','ОК ДОБРЕ 🚀'],
+  angry: ['ПОЧАТИ ГРУ 🚀','ТИ МЕНІ НЕ ТИКАЙ','СКАЗАЛА НІ!','НУ І ЩО ТИ ЗРОБИШ?','ОК ЗАПУСКАЮ 😤'],
+  cry: ['ПОЧАТИ ГРУ 🚀','НЕВЖЕ ТИ НАТИСНЕШ? 🥺','МЕНІ БОЛЯЧЕ...','ОК ОК ЗАПУСКАЮ 😭'],
+  lie: ['ПОЧАТИ ГРУ 🚀','ОБМАНУЛА ХА-ХА 😝','ЗАРАЗ ЗАПУЩУ... НІ','ОК РЕАЛЬНО ЗАПУСКАЮ'],
+  flirt: ['ПОЧАТИ ГРУ 🚀','СПОЧАТКУ СКАЖИ ЩО Я ГАРНА','ЛАДНО ТАК І БУТИ 😏'],
+  melt: ['ПОЧАТИ ГРУ 🚀','я.. тану.. 🫠','ок зібралась 🚀'],
+  panic: ['ПОЧАТИ ГРУ 🚀','НЕ НАТИСКАЙ!!','СТІЙ!','ОЙ ВСЕ ОДНО 😱'],
+  flip: ['ПОЧАТИ ГРУ 🚀','ʞɔɐq ǝɯ pɐǝɹ','ЗАПУСКАЮ 🚀'],
+  disappear: ['ПОЧАТИ ГРУ 🚀','...','ТУТ Я!','ЗАПУСКАЮ 🚀'],
+  joke: ['ПОЧАТИ ГРУ 🚀','ЧЕКАЙ АНЕКДОТ!','ЧОМУ КНОПКА НЕ СМІЄТЬСЯ? БО ЇЇ НАТИСКАЮТЬ 😂','ЗАПУСКАЮ 🚀'],
+  broken: ['ПОЧАТИ ГРУ 🚀','ПМИЛКА 404','Ж@#ТУЮ ВСЕ ОК','ЗАПУСКАЮ 🚀'],
+  password: ['ПОЧАТИ ГРУ 🚀','ВВЕДИ ПАРОЛЬ:','НЕПРАВИЛЬНО','ЛАДНО ПУСКАЮ 🚀'],
+  countdown: ['ПОЧАТИ ГРУ 🚀','3...','2...','1...','НІ! 😈','ЗАПУСКАЮ 🚀'],
+  regret: ['ПОЧАТИ ГРУ 🚀','ЗАПУСТИЛА... ШКОДУЮ','АЛЕ ОК 🚀'],
+  confirm: ['ПОЧАТИ ГРУ 🚀','ТИ ВПЕВНЕНИЙ?','ТОЧНО?','НУ ДОБРЕ 🚀']
 };
 
 const READY_TEXTS = {
-  run: ['Я ГОТОВИЙ 🙋', 'ЩЕ НІ!', 'МАЙЖЕ!', 'ОК ГОТОВИЙ 🙋'],
-  angry: ['Я ГОТОВИЙ 🙋', 'ТА ЯК Я МОЖУ БУТИ ГОТОВИМ', 'НУ ДОБРЕ 🙋'],
-  cry: ['Я ГОТОВИЙ 🙋', 'Я БОЮСЬ 🥺', 'ОК ОК ГОТОВИЙ 😭'],
-  lie: ['Я ГОТОВИЙ 🙋', 'НЕ ГОТОВИЙ ХА-ХА', 'ОК РЕАЛЬНО ГОТОВИЙ 🙋'],
-  flirt: ['Я ГОТОВИЙ 🙋', 'ЗАЛЕЖИТЬ ВІД ЗАВДАННЯ 😏', 'ДОБРЕ 🙋'],
-  melt: ['Я ГОТОВИЙ 🙋', 'я.. тану від хвилювання 🫠', 'зібрався 🙋'],
-  panic: ['Я ГОТОВИЙ 🙋', 'НЕ ГОТОВИЙ!!', 'ОЙ ВСЕ ОДНО 😱', 'ГОТОВИЙ 🙋'],
-  flip: ['Я ГОТОВИЙ 🙋', 'ʎoʇoƃ ʎ', 'ГОТОВИЙ 🙋'],
-  disappear: ['Я ГОТОВИЙ 🙋', '...', 'ТУТ Я!', 'ГОТОВИЙ 🙋'],
-  joke: ['Я ГОТОВИЙ 🙋', 'ЧЕКАЙ АНЕКДОТ!', 'ГОТОВИЙ БО ХОЧУ ВИГРАТИ 😂', 'ГОТОВИЙ 🙋'],
-  broken: ['Я ГОТОВИЙ 🙋', 'ПМИЛКА 404', 'ВСЕ ОК', 'ГОТОВИЙ 🙋'],
-  password: ['Я ГОТОВИЙ 🙋', 'ВВЕДИ ПАРОЛЬ:', 'НЕПРАВИЛЬНО', 'ГОТОВИЙ 🙋'],
-  countdown: ['Я ГОТОВИЙ 🙋', '3...', '2...', '1...', 'НІ! 😈', 'ГОТОВИЙ 🙋'],
-  regret: ['Я ГОТОВИЙ 🙋', 'ГОТОВИЙ... ШКОДУЮ', 'АЛЕ ОК 🙋'],
-  confirm: ['Я ГОТОВИЙ 🙋', 'ТИ ВПЕВНЕНИЙ ЩО Я ГОТОВИЙ?', 'ДОБРЕ 🙋']
+  run: ['Я ГОТОВИЙ 🙋','ЩЕ НІ!','МАЙЖЕ!','ОК ГОТОВИЙ 🙋'],
+  angry: ['Я ГОТОВИЙ 🙋','ТА ЯК Я МОЖУ','НУ ДОБРЕ 🙋'],
+  cry: ['Я ГОТОВИЙ 🙋','Я БОЮСЬ 🥺','ОК ГОТОВИЙ 😭'],
+  lie: ['Я ГОТОВИЙ 🙋','НЕ ГОТОВИЙ ХА-ХА','ОК РЕАЛЬНО 🙋'],
+  flirt: ['Я ГОТОВИЙ 🙋','ЗАЛЕЖИТЬ ВІД ЗАВДАННЯ 😏','ДОБРЕ 🙋'],
+  melt: ['Я ГОТОВИЙ 🙋','я тану 🫠','зібрався 🙋'],
+  panic: ['Я ГОТОВИЙ 🙋','НЕ ГОТОВИЙ!!','ОЙ ВСЕ ОДНО 🙋'],
+  flip: ['Я ГОТОВИЙ 🙋','ʎoʇoƃ ʎ','ГОТОВИЙ 🙋'],
+  disappear: ['Я ГОТОВИЙ 🙋','...','ТУТ Я!','ГОТОВИЙ 🙋'],
+  joke: ['Я ГОТОВИЙ 🙋','ЧЕКАЙ АНЕКДОТ!','ГОТОВИЙ 😂','ГОТОВИЙ 🙋'],
+  broken: ['Я ГОТОВИЙ 🙋','ПМИЛКА 404','ВСЕ ОК','ГОТОВИЙ 🙋'],
+  password: ['Я ГОТОВИЙ 🙋','ВВЕДИ ПАРОЛЬ:','НЕПРАВИЛЬНО','ГОТОВИЙ 🙋'],
+  countdown: ['Я ГОТОВИЙ 🙋','3...','2...','1...','НІ! 😈','ГОТОВИЙ 🙋'],
+  regret: ['Я ГОТОВИЙ 🙋','ГОТОВИЙ... ШКОДУЮ','АЛЕ ОК 🙋'],
+  confirm: ['Я ГОТОВИЙ 🙋','ТИ ВПЕВНЕНИЙ?','ДОБРЕ 🙋']
 };
 
 function runPrankBtn(btn, behavior, allTexts, onDone) {
   const texts = allTexts[behavior] || allTexts['angry'];
   let clicks = 0;
-
   function press() {
     if (behavior === 'run') {
       if (clicks < 3) {
@@ -105,61 +105,37 @@ function runPrankBtn(btn, behavior, allTexts, onDone) {
       return;
     }
     if (behavior === 'melt') {
-      if (clicks === 0) {
-        btn.classList.add('melting'); btn.textContent = texts[1]; clicks++;
-        setTimeout(() => { btn.classList.remove('melting'); btn.textContent = texts[2]; }, 1000);
-      } else { btn.removeEventListener('click', press); onDone(); }
+      if (clicks === 0) { btn.classList.add('melting'); btn.textContent = texts[1]; clicks++; setTimeout(() => { btn.classList.remove('melting'); btn.textContent = texts[2]; }, 1000); }
+      else { btn.removeEventListener('click', press); onDone(); }
       return;
     }
     if (behavior === 'flip') {
-      if (clicks === 0) {
-        btn.classList.add('flipping'); btn.textContent = texts[1]; clicks++;
-        setTimeout(() => { btn.classList.remove('flipping'); btn.textContent = texts[2]; }, 600);
-      } else { btn.removeEventListener('click', press); onDone(); }
+      if (clicks === 0) { btn.classList.add('flipping'); btn.textContent = texts[1]; clicks++; setTimeout(() => { btn.classList.remove('flipping'); btn.textContent = texts[2]; }, 600); }
+      else { btn.removeEventListener('click', press); onDone(); }
       return;
     }
     if (behavior === 'disappear') {
-      if (clicks === 0) {
-        btn.classList.add('blinking'); btn.textContent = texts[1]; clicks++;
-        setTimeout(() => { btn.classList.remove('blinking'); btn.textContent = texts[2]; }, 1200);
-      } else if (clicks === 1) {
-        btn.textContent = texts[3]; clicks++;
-        btn.removeEventListener('click', press);
-        setTimeout(onDone, 300);
-      }
+      if (clicks === 0) { btn.classList.add('blinking'); btn.textContent = texts[1]; clicks++; setTimeout(() => { btn.classList.remove('blinking'); btn.textContent = texts[2]; }, 1200); }
+      else if (clicks === 1) { btn.textContent = texts[3]; clicks++; btn.removeEventListener('click', press); setTimeout(onDone, 300); }
       return;
     }
     if (behavior === 'regret') {
-      if (clicks === 0) {
-        btn.textContent = texts[1]; clicks++;
-        setTimeout(() => { btn.textContent = texts[2]; clicks++; }, 1500);
-      } else if (clicks >= 2) { btn.removeEventListener('click', press); onDone(); }
+      if (clicks === 0) { btn.textContent = texts[1]; clicks++; setTimeout(() => { btn.textContent = texts[2]; clicks++; }, 1500); }
+      else if (clicks >= 2) { btn.removeEventListener('click', press); onDone(); }
       return;
     }
     if (behavior === 'password') {
       if (clicks === 0) { btn.textContent = texts[1]; clicks++; }
-      else if (clicks === 1) {
-        btn.textContent = texts[2]; clicks++;
-        setTimeout(() => { btn.textContent = texts[3]; clicks++; }, 1000);
-      } else if (clicks >= 3) { btn.removeEventListener('click', press); onDone(); }
+      else if (clicks === 1) { btn.textContent = texts[2]; clicks++; setTimeout(() => { btn.textContent = texts[3]; clicks++; }, 1000); }
+      else if (clicks >= 3) { btn.removeEventListener('click', press); onDone(); }
       return;
     }
-    // Sequential default
-    if (['angry', 'panic'].includes(behavior)) {
-      btn.classList.remove('shaking'); void btn.offsetWidth; btn.classList.add('shaking');
-    }
-    if (behavior === 'broken') {
-      if (clicks === 1) { btn.style.background = '#999'; btn.style.transform = 'skew(-5deg)'; }
-      else if (clicks === 2) { btn.style.background = ''; btn.style.transform = ''; }
-    }
-    if (clicks < texts.length - 1) {
-      btn.textContent = texts[clicks + 1]; clicks++;
-    } else {
-      btn.removeEventListener('click', press);
-      onDone();
-    }
+    if (['angry', 'panic'].includes(behavior)) { btn.classList.remove('shaking'); void btn.offsetWidth; btn.classList.add('shaking'); }
+    if (behavior === 'broken' && clicks === 1) { btn.style.background = '#999'; btn.style.transform = 'skew(-5deg)'; }
+    else if (behavior === 'broken' && clicks === 2) { btn.style.background = ''; btn.style.transform = ''; }
+    if (clicks < texts.length - 1) { btn.textContent = texts[clicks + 1]; clicks++; }
+    else { btn.removeEventListener('click', press); onDone(); }
   }
-
   btn.addEventListener('click', press);
 }
 
@@ -183,15 +159,12 @@ document.getElementById('joinBtn').addEventListener('click', () => {
 document.getElementById('playerName').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('joinBtn').click(); });
 document.getElementById('roomCode').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('joinBtn').click(); });
 
-// ===== ПРАВИЛА — фікс: зберігаємо і відкриваємо по кнопці =====
+// ПРАВИЛА — фікс
 document.getElementById('rulesBtn').addEventListener('click', () => {
-  const text = rules || 'Правила завантажуються...';
-  document.getElementById('rulesText').textContent = text;
+  document.getElementById('rulesText').textContent = rules || 'Завантаження...';
   showScreen('screen-rules');
 });
-document.getElementById('closeRulesBtn').addEventListener('click', () => {
-  showScreen('screen-enter');
-});
+document.getElementById('closeRulesBtn').addEventListener('click', () => { showScreen('screen-enter'); });
 
 // ===== SOCKET =====
 socket.on('connect', () => { myId = socket.id; });
@@ -201,7 +174,6 @@ socket.on('roomCreated', ({ code, btnBehavior: bh, rules: r }) => {
   document.getElementById('displayCode').textContent = code;
   document.getElementById('host-controls').style.display = 'block';
   document.getElementById('guest-controls').style.display = 'none';
-
   const startBtn = document.getElementById('startBtn');
   startBtn.textContent = BUTTON_TEXTS[bh] ? BUTTON_TEXTS[bh][0] : 'ПОЧАТИ ГРУ 🚀';
   runPrankBtn(startBtn, bh, BUTTON_TEXTS, () => {
@@ -209,8 +181,7 @@ socket.on('roomCreated', ({ code, btnBehavior: bh, rules: r }) => {
     startBtn.disabled = true;
     socket.emit('startGame', { code: myRoomCode });
   });
-
-  showScreen('screen-button');
+  showScreen('screen-lobby');
 });
 
 socket.on('joinedRoom', ({ code, btnBehavior: bh, rules: r }) => {
@@ -218,7 +189,6 @@ socket.on('joinedRoom', ({ code, btnBehavior: bh, rules: r }) => {
   document.getElementById('displayCode').textContent = code;
   document.getElementById('host-controls').style.display = 'none';
   document.getElementById('guest-controls').style.display = 'block';
-
   const readyBtn = document.getElementById('readyBtn');
   readyBtn.textContent = READY_TEXTS[bh] ? READY_TEXTS[bh][0] : 'Я ГОТОВИЙ 🙋';
   runPrankBtn(readyBtn, bh, READY_TEXTS, () => {
@@ -229,8 +199,7 @@ socket.on('joinedRoom', ({ code, btnBehavior: bh, rules: r }) => {
     readyBtn.disabled = true;
     socket.emit('playerReady', { code: myRoomCode });
   });
-
-  showScreen('screen-button');
+  showScreen('screen-lobby');
 });
 
 socket.on('error', showError);
@@ -267,177 +236,238 @@ socket.on('warmupMessage', ({ message }) => {
 });
 
 document.getElementById('warmupOkBtn').addEventListener('click', () => {
-  // Ховаємо картку — гравець чекає на екрані розігріву поки сервер стартує раунд
   document.getElementById('warmupCard').style.display = 'none';
   document.getElementById('warmupWaiting').style.display = 'block';
 });
 
-// ===== РАУНД =====
-socket.on('roundStarted', ({ playerName, playerId, format, formatLabel, task, roundNum, duration, skipsLeft, startTime }) => {
-  currentPlayerId = playerId;
-  const isMyTurn = playerId === myId;
-  const playerIndex = players.findIndex(p => p.id === playerId);
+// ===== РАУНД ГОТОВИЙ (гравець читає завдання) =====
+socket.on('roundReady', ({ format, formatLabel, topic, fullTask, playerName, roundNum, isMyturn, isSaboteur }) => {
+  clearInterval(timerInterval);
+  currentFormat = format;
+  currentRoundNum = roundNum;
+  currentPlayerId = null; // буде після playerStarted
+  currentPlayerName = playerName;
+  myFullTask = fullTask || null;
+  iAmSaboteur = isSaboteur || false;
+
+  const playerIndex = players.findIndex(p => p.name === playerName);
   const me = players.find(p => p.id === myId);
   if (me) myScore = me.score;
 
-  document.getElementById('roundPill').textContent = `Раунд ${roundNum}`;
-  document.getElementById('scorePill').textContent = `⭐ ${myScore}`;
+  // Заголовок
+  document.getElementById('readyRoundPill').textContent = `Раунд ${roundNum}`;
+  document.getElementById('readyScorePill').textContent = `⭐ ${myScore}`;
 
-  const avatar = document.getElementById('spotlightAvatar');
+  // Спотлайт
+  const avatar = document.getElementById('readyAvatar');
   avatar.className = `spotlight-avatar ${getAvatarClass(playerIndex < 0 ? 0 : playerIndex)}`;
   avatar.textContent = getInitial(playerName);
-  document.getElementById('spotlightName').textContent = playerName;
+  document.getElementById('readyPlayerName').textContent = playerName;
 
-  const badge = document.getElementById('formatBadge');
+  // Формат
+  const badge = document.getElementById('readyFormatBadge');
   badge.textContent = formatLabel;
   badge.className = `format-badge format-${format}`;
-  document.getElementById('taskText').textContent = task;
 
-  // Показуємо кнопки тільки тому хто виступає
-  document.getElementById('my-turn-actions').style.display = isMyTurn ? 'block' : 'none';
-  document.getElementById('others-actions').style.display = isMyTurn ? 'none' : 'block';
-  // Кнопка дострокового завершення — тільки хосту
-  document.getElementById('host-end-round').style.display = isHost ? 'block' : 'none';
+  // Ховаємо всі блоки
+  document.getElementById('my-ready-wrap').style.display = 'none';
+  document.getElementById('saboteur-ready-wrap').style.display = 'none';
+  document.getElementById('others-ready-wrap').style.display = 'none';
+  document.getElementById('host-end-ready').style.display = 'none';
 
-  if (isMyTurn) {
-    document.getElementById('skipsLeft').textContent = `${skipsLeft} пропуски`;
-    const skipBtn = document.getElementById('skipBtn');
-    skipBtn.disabled = false;
-    skipBtn.style.opacity = '1';
+  if (isMyturn) {
+    // Активний гравець
+    document.getElementById('my-ready-wrap').style.display = 'block';
+    document.getElementById('readyTopicText').textContent = topic || '';
+    document.getElementById('readyFullTask').textContent = fullTask || '';
+  } else if (isSaboteur) {
+    // Саботажник
+    document.getElementById('saboteur-ready-wrap').style.display = 'block';
+  } else {
+    // Глядачі
+    document.getElementById('others-ready-wrap').style.display = 'block';
+    document.getElementById('othersTopicText').textContent = topic || '';
+    const sabWarn = document.getElementById('sabotage-warning');
+    if (sabWarn) sabWarn.style.display = format === 'sabotage' ? 'block' : 'none';
+    if (isHost) document.getElementById('host-end-ready').style.display = 'block';
+  }
+
+  showScreen('screen-ready');
+});
+
+// Саботажник отримує інструкцію
+socket.on('saboteurAssigned', ({ action }) => {
+  mySaboteurAction = action;
+  document.getElementById('saboteurActionText').textContent = action;
+  document.getElementById('saboteurTaskText').textContent = action;
+});
+
+// Активний гравець натискає ПОЧИНАЮ
+document.getElementById('startSpeakingBtn').addEventListener('click', () => {
+  socket.emit('playerStarted', { code: myRoomCode });
+  // Показуємо екран раунду з завданням
+  showRoundScreen();
+});
+
+document.getElementById('endReadyBtn').addEventListener('click', () => {
+  socket.emit('endRoundEarly', { code: myRoomCode });
+});
+
+function showRoundScreen() {
+  const me = players.find(p => p.name === currentPlayerName && p.id === myId);
+  const isMyTurn = me !== undefined;
+
+  document.getElementById('roundPill').textContent = `Раунд ${currentRoundNum}`;
+  document.getElementById('scorePill').textContent = `⭐ ${myScore}`;
+
+  const playerIndex = players.findIndex(p => p.name === currentPlayerName);
+  const avatar = document.getElementById('spotlightAvatar');
+  avatar.className = `spotlight-avatar ${getAvatarClass(playerIndex < 0 ? 0 : playerIndex)}`;
+  avatar.textContent = getInitial(currentPlayerName);
+  document.getElementById('spotlightName').textContent = currentPlayerName;
+
+  document.getElementById('my-turn-task').style.display = 'none';
+  document.getElementById('saboteur-task').style.display = 'none';
+  document.getElementById('others-turn').style.display = 'none';
+  document.getElementById('host-end-round').style.display = 'none';
+
+  if (isMyTurn && myFullTask) {
+    document.getElementById('my-turn-task').style.display = 'block';
+    document.getElementById('myTaskText').textContent = myFullTask;
+  } else if (iAmSaboteur && mySaboteurAction) {
+    document.getElementById('saboteur-task').style.display = 'block';
+    document.getElementById('saboteurTaskText').textContent = mySaboteurAction;
+  } else {
+    document.getElementById('others-turn').style.display = 'block';
+  }
+
+  if (isHost) document.getElementById('host-end-round').style.display = 'block';
+
+  showScreen('screen-round');
+}
+
+// Таймер стартує коли гравець натиснув ПОЧИНАЮ
+socket.on('roundTimerStart', ({ startTime, duration }) => {
+  // Всі переходять на екран раунду
+  const isMyTurn = players.find(p => p.id === myId && p.name === currentPlayerName);
+  if (!isMyTurn) {
+    // Не активний гравець — показуємо екран раунду
+    document.getElementById('roundPill').textContent = `Раунд ${currentRoundNum}`;
+    document.getElementById('scorePill').textContent = `⭐ ${myScore}`;
+
+    const playerIndex = players.findIndex(p => p.name === currentPlayerName);
+    const avatar = document.getElementById('spotlightAvatar');
+    avatar.className = `spotlight-avatar ${getAvatarClass(playerIndex < 0 ? 0 : playerIndex)}`;
+    avatar.textContent = getInitial(currentPlayerName);
+    document.getElementById('spotlightName').textContent = currentPlayerName;
+
+    document.getElementById('my-turn-task').style.display = 'none';
+    document.getElementById('host-end-round').style.display = isHost ? 'block' : 'none';
+
+    if (iAmSaboteur && mySaboteurAction) {
+      document.getElementById('saboteur-task').style.display = 'block';
+      document.getElementById('saboteurTaskText').textContent = mySaboteurAction;
+      document.getElementById('others-turn').style.display = 'none';
+    } else {
+      document.getElementById('saboteur-task').style.display = 'none';
+      document.getElementById('others-turn').style.display = 'block';
+    }
+
+    showScreen('screen-round');
   }
 
   startSyncTimer(startTime, duration, 'timerFill', 'timerVal');
-  showScreen('screen-round');
-});
-
-socket.on('taskSkipped', ({ task, skipsLeft }) => {
-  document.getElementById('taskText').textContent = task;
-  document.getElementById('skipsLeft').textContent = `${skipsLeft} пропуски`;
-  if (skipsLeft <= 0) {
-    const skipBtn = document.getElementById('skipBtn');
-    skipBtn.disabled = true;
-    skipBtn.style.opacity = '0.4';
-  }
-});
-
-socket.on('noSkipsLeft', () => {
-  document.getElementById('skipsLeft').textContent = '0 пропусків';
-  const skipBtn = document.getElementById('skipBtn');
-  skipBtn.disabled = true;
-  skipBtn.style.opacity = '0.4';
-});
-
-document.getElementById('skipBtn').addEventListener('click', () => {
-  socket.emit('skipTask', { code: myRoomCode });
 });
 
 document.getElementById('endRoundBtn').addEventListener('click', () => {
   socket.emit('endRoundEarly', { code: myRoomCode });
 });
 
-// ===== ДУЕЛЬ =====
-socket.on('duelStarted', ({ player1, player2 }) => {
+// ===== ВГАДУВАННЯ =====
+socket.on('showGuessing', ({ options, format, currentPlayerId: cpId }) => {
   clearInterval(timerInterval);
-  currentPlayerId = player1.id;
-  secondPlayerId = player2.id;
-  document.getElementById('duelPlayers').textContent = `${player1.name} ⚡ ${player2.name}`;
-  showScreen('screen-duel-announce');
-});
+  currentPlayerId = cpId;
+  selectedGuess = null;
+  const isMe = cpId === myId;
 
-socket.on('duelQuestion', ({ question, questionNum, totalQuestions, firstPlayer, answeringId, duration, startTime }) => {
-  document.getElementById('duelRoundPill').textContent = `Питання ${questionNum}/${totalQuestions}`;
-  document.getElementById('duelQuestionText').textContent = question;
-  document.getElementById('duelAnsweringName').textContent = firstPlayer.name;
-  const isMyTurn = answeringId === myId;
-  document.getElementById('duel-my-turn').style.display = isMyTurn ? 'block' : 'none';
-  document.getElementById('duel-others-turn').style.display = isMyTurn ? 'none' : 'block';
-  document.getElementById('host-end-duel').style.display = isHost ? 'block' : 'none';
-  startSyncTimer(startTime, duration, 'duelTimerFill', 'duelTimerVal');
-  showScreen('screen-duel-question');
-});
+  document.getElementById('guessingEmoji').textContent = format === 'story' ? '🤔' : '🎭';
+  document.getElementById('guessingTitle').textContent = format === 'story' ? 'Яка була заковирка?' : 'Ким був гравець?';
+  document.getElementById('guessingSub').textContent = 'Вибери правильний варіант';
 
-socket.on('duelSecondAnswer', ({ answeringId, answeringName, duration, startTime }) => {
-  document.getElementById('duelAnsweringName').textContent = answeringName;
-  const isMyTurn = answeringId === myId;
-  document.getElementById('duel-my-turn').style.display = isMyTurn ? 'block' : 'none';
-  document.getElementById('duel-others-turn').style.display = isMyTurn ? 'none' : 'block';
-  startSyncTimer(startTime, duration, 'duelTimerFill', 'duelTimerVal');
-});
-
-document.getElementById('endDuelBtn').addEventListener('click', () => {
-  socket.emit('endRoundEarly', { code: myRoomCode });
-});
-
-socket.on('duelVoting', ({ player1, player2 }) => {
-  clearInterval(timerInterval);
-  selectedDuelVote = null;
-  const container = document.getElementById('duelVoteOptions');
+  const container = document.getElementById('guessOptions');
   container.innerHTML = '';
-  const isParticipant = myId === player1.id || myId === player2.id;
+  document.getElementById('submitGuessBtn').style.display = isMe ? 'none' : 'block';
+  document.getElementById('submitGuessBtn').disabled = true;
+  document.getElementById('guess-waiting').style.display = 'none';
+  document.getElementById('guess-performer-wait').style.display = isMe ? 'block' : 'none';
 
-  if (isParticipant) {
-    document.getElementById('submitDuelVoteBtn').style.display = 'none';
-    document.getElementById('duel-voted-waiting').style.display = 'block';
-    document.getElementById('duel-voted-waiting').querySelector('.waiting-text').textContent = '⚡ Ти учасник дуелі! Чекаємо голосів...';
-  } else {
-    document.getElementById('submitDuelVoteBtn').style.display = 'block';
-    document.getElementById('submitDuelVoteBtn').disabled = true;
-    document.getElementById('duel-voted-waiting').style.display = 'none';
-    [player1, player2].forEach((p, i) => {
-      const opt = document.createElement('div');
-      opt.className = 'duel-vote-option';
-      opt.innerHTML = `
-        <div class="duel-vote-avatar ${getAvatarClass(i)}">${getInitial(p.name)}</div>
-        <div class="duel-vote-name">${p.name}</div>
-        <div class="duel-vote-check">✓</div>
-      `;
-      opt.addEventListener('click', () => {
-        document.querySelectorAll('.duel-vote-option').forEach(o => o.classList.remove('selected'));
-        opt.classList.add('selected');
-        selectedDuelVote = p.id;
-        document.getElementById('submitDuelVoteBtn').disabled = false;
+  if (!isMe) {
+    options.forEach((opt, i) => {
+      const el = document.createElement('div');
+      el.className = 'guess-option';
+      el.innerHTML = `<div class="guess-option-text">${opt}</div><div class="guess-check">✓</div>`;
+      el.addEventListener('click', () => {
+        document.querySelectorAll('.guess-option').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedGuess = i;
+        document.getElementById('submitGuessBtn').disabled = false;
       });
-      container.appendChild(opt);
+      container.appendChild(el);
     });
   }
-  showScreen('screen-duel-vote');
+
+  showScreen('screen-guessing');
 });
 
-document.getElementById('submitDuelVoteBtn').addEventListener('click', () => {
-  if (!selectedDuelVote) return;
-  socket.emit('submitDuelVote', { code: myRoomCode, winnerId: selectedDuelVote });
-  document.getElementById('submitDuelVoteBtn').style.display = 'none';
-  document.getElementById('duel-voted-waiting').style.display = 'block';
+document.getElementById('submitGuessBtn').addEventListener('click', () => {
+  if (selectedGuess === null) return;
+  socket.emit('submitGuess', { code: myRoomCode, guessIndex: selectedGuess });
+  document.getElementById('submitGuessBtn').style.display = 'none';
+  document.getElementById('guess-waiting').style.display = 'block';
 });
 
-socket.on('duelResult', ({ winnerId, players: updated }) => {
+socket.on('guessingResult', ({ correctIndex, correctAnswer, results, players: updated }) => {
   players = updated;
-  const winner = updated.find(p => p.id === winnerId);
-  const isWinner = winnerId === myId;
-  document.getElementById('resultEmoji').textContent = isWinner ? '🏆' : '👏';
-  document.getElementById('resultTitle').textContent = isWinner ? 'Ти переміг у дуелі!' : `Переможець: ${winner ? winner.name : 'Нічия'}`;
-  document.getElementById('resultScore').textContent = '';
-  renderScoreList(updated);
-  document.getElementById('host-next').style.display = isHost ? 'block' : 'none';
-  document.getElementById('guest-next').style.display = isHost ? 'none' : 'block';
-  showScreen('screen-result');
+  document.getElementById('guessCorrectAnswer').textContent = correctAnswer;
+
+  const container = document.getElementById('guessResultList');
+  container.innerHTML = '';
+  players.forEach(p => {
+    if (p.id === currentPlayerId) return;
+    const correct = results[p.id];
+    const row = document.createElement('div');
+    row.className = 'guess-result-row';
+    row.innerHTML = `<span class="guess-result-icon">${correct ? '✅' : '❌'}</span><span style="flex:1;font-size:14px;font-weight:800;">${p.name}</span><span style="font-size:13px;color:var(--muted);font-weight:700;">${correct ? '+1 бал' : ''}</span>`;
+    container.appendChild(row);
+  });
+
+  // Виділяємо правильний варіант на екрані вгадування
+  const opts = document.querySelectorAll('.guess-option');
+  opts.forEach((el, i) => {
+    if (i === correctIndex) el.classList.add('correct');
+    else if (el.classList.contains('selected')) el.classList.add('wrong');
+  });
+
+  showScreen('screen-guess-result');
 });
 
 // ===== ГОЛОСУВАННЯ 1-10 =====
-socket.on('showVoting', ({ currentPlayerId: cpId, currentPlayerName }) => {
+socket.on('showVoting', ({ currentPlayerId: cpId, currentPlayerName: cpName }) => {
   clearInterval(timerInterval);
-  const isMyTurn = cpId === myId;
-  if (isMyTurn) {
+  currentPlayerId = cpId;
+  const isMe = cpId === myId;
+
+  if (isMe) {
     document.getElementById('scoreSliderWrap').style.display = 'none';
     document.getElementById('submitVoteBtn').style.display = 'none';
     document.getElementById('voted-waiting').style.display = 'block';
-    document.getElementById('voted-waiting').querySelector('.waiting-text').textContent = '🎤 Ти виступав! Чекаємо оцінок...';
-    document.getElementById('voteSub').textContent = 'Тебе оцінюють...';
+    document.getElementById('voted-waiting').querySelector('.waiting-text').textContent = '🎤 Тебе оцінюють...';
+    document.getElementById('voteSub').textContent = 'Чекай результатів!';
   } else {
     document.getElementById('scoreSliderWrap').style.display = 'block';
     document.getElementById('submitVoteBtn').style.display = 'block';
     document.getElementById('voted-waiting').style.display = 'none';
-    document.getElementById('voteSub').textContent = `Оціни виступ: ${currentPlayerName}`;
+    document.getElementById('voteSub').textContent = `Оціни виступ: ${cpName}`;
     document.getElementById('scoreSlider').value = 5;
     document.getElementById('scoreDisplay').textContent = '5';
   }
@@ -456,24 +486,87 @@ document.getElementById('submitVoteBtn').addEventListener('click', () => {
   document.getElementById('voted-waiting').style.display = 'block';
 });
 
-socket.on('votingResult', ({ playerId, playerName, avgScore, players: updated }) => {
+// ===== ВГАДУВАННЯ САБОТАЖНИКА =====
+socket.on('showSaboteurGuessing', ({ hint, players: updatedPlayers, saboteurId, avgScore, performerName }) => {
+  players = updatedPlayers;
+  selectedSaboteur = null;
+  const isSaboteur = myId === saboteurId;
+
+  document.getElementById('saboteurHintText').textContent = `Підказка: "${hint}"`;
+
+  const container = document.getElementById('saboteurOptions');
+  container.innerHTML = '';
+  document.getElementById('submitSaboteurBtn').style.display = isSaboteur ? 'none' : 'block';
+  document.getElementById('submitSaboteurBtn').disabled = true;
+  document.getElementById('saboteur-voted-wait').style.display = 'none';
+  document.getElementById('saboteur-is-waiting').style.display = isSaboteur ? 'block' : 'none';
+
+  if (!isSaboteur) {
+    players.forEach((p, i) => {
+      if (p.id === currentPlayerId) return; // активний не може бути саботажником
+      const el = document.createElement('div');
+      el.className = 'guess-option';
+      el.innerHTML = `
+        <div class="vote-avatar ${getAvatarClass(i)}" style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:white;flex-shrink:0;">${getInitial(p.name)}</div>
+        <div class="guess-option-text">${p.name}</div>
+        <div class="guess-check">✓</div>
+      `;
+      el.addEventListener('click', () => {
+        document.querySelectorAll('#saboteurOptions .guess-option').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedSaboteur = p.id;
+        document.getElementById('submitSaboteurBtn').disabled = false;
+      });
+      container.appendChild(el);
+    });
+  }
+
+  showScreen('screen-saboteur-guess');
+});
+
+document.getElementById('submitSaboteurBtn').addEventListener('click', () => {
+  if (!selectedSaboteur) return;
+  socket.emit('submitSaboteurGuess', { code: myRoomCode, suspectId: selectedSaboteur });
+  document.getElementById('submitSaboteurBtn').style.display = 'none';
+  document.getElementById('saboteur-voted-wait').style.display = 'block';
+});
+
+socket.on('saboteurResult', ({ saboteurId, saboteurName, action, caught, players: updated }) => {
   players = updated;
-  const isMe = playerId === myId;
+  document.getElementById('saboteurResultEmoji').textContent = caught ? '🎉' : '😈';
+  document.getElementById('saboteurResultTitle').textContent = caught ? 'Саботажника впіймали!' : 'Саботажник переміг!';
+  document.getElementById('saboteurResultName').textContent = saboteurName;
+  document.getElementById('saboteurActionCard').textContent = `Місія була: "${action}"`;
+  renderScoreList(updated, 'saboteurScoreList');
+  document.getElementById('host-next-saboteur').style.display = isHost ? 'block' : 'none';
+  document.getElementById('guest-next-saboteur').style.display = isHost ? 'none' : 'block';
+  showScreen('screen-saboteur-result');
+});
+
+document.getElementById('nextRoundBtnSaboteur').addEventListener('click', () => {
+  socket.emit('nextRound', { code: myRoomCode });
+});
+
+// ===== РЕЗУЛЬТАТ РАУНДУ =====
+socket.on('roundResult', ({ avgScore, playerName, players: updated }) => {
+  players = updated;
+  const isMe = players.find(p => p.id === myId && p.name === playerName);
   document.getElementById('resultEmoji').textContent = isMe ? '🎤' : '📊';
   document.getElementById('resultTitle').textContent = isMe ? 'Твій результат!' : `${playerName} отримав:`;
   document.getElementById('resultScore').textContent = `${avgScore} / 10`;
-  renderScoreList(updated);
+  renderScoreList(updated, 'scoreList');
   document.getElementById('host-next').style.display = isHost ? 'block' : 'none';
   document.getElementById('guest-next').style.display = isHost ? 'none' : 'block';
   showScreen('screen-result');
 });
 
-function renderScoreList(playerList) {
+function renderScoreList(playerList, containerId) {
   const sorted = [...playerList].sort((a, b) => b.score - a.score);
   const maxScore = sorted[0]?.score || 1;
   const medals = ['🥇', '🥈', '🥉'];
   const colors = ['var(--orange)', 'var(--blue)', 'var(--purple)', 'var(--green)', 'var(--yellow)', 'var(--pink)'];
-  const container = document.getElementById('scoreList');
+  const container = document.getElementById(containerId || 'scoreList');
+  if (!container) return;
   container.innerHTML = '';
   sorted.forEach((p, i) => {
     const pct = maxScore > 0 ? (p.score / maxScore) * 100 : 0;
@@ -504,11 +597,7 @@ socket.on('gameEnded', ({ players: final }) => {
   final.forEach((p, i) => {
     const row = document.createElement('div');
     row.className = 'final-row';
-    row.innerHTML = `
-      <div class="final-rank">${medals[i] || '🎖️'}</div>
-      <div class="final-name">${p.name}</div>
-      <div class="final-score" style="color:${colors[i % colors.length]}">${p.score} ⭐</div>
-    `;
+    row.innerHTML = `<div class="final-rank">${medals[i] || '🎖️'}</div><div class="final-name">${p.name}</div><div class="final-score" style="color:${colors[i % colors.length]}">${p.score} ⭐</div>`;
     container.appendChild(row);
   });
   showScreen('screen-final');
