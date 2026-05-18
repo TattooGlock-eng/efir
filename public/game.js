@@ -2,9 +2,9 @@ const socket = io();
 
 let myName = '', myRoomCode = '', isHost = false, myId = '';
 let players = [], currentPlayerId = '', secondPlayerId = '';
-let timerInterval = null, btnBehavior = 'angry', btnClickCount = 0, myScore = 0;
+let timerInterval = null, btnBehavior = 'angry', myScore = 0;
 let selectedDuelVote = null, rules = '';
-let readyBtnClicks = 0, readyBtnBehavior = 'angry';
+let guestReady = false;
 
 // ===== УТИЛІТИ =====
 function showScreen(id) {
@@ -15,7 +15,7 @@ function getAvatarClass(i) { return `av-${i % 8}`; }
 function getInitial(name) { return name.charAt(0).toUpperCase(); }
 function formatTime(sec) {
   if (sec <= 0) return '0:00';
-  return `${Math.floor(sec/60)}:${(sec%60).toString().padStart(2,'0')}`;
+  return `${Math.floor(sec / 60)}:${(sec % 60).toString().padStart(2, '0')}`;
 }
 function showError(msg) {
   const el = document.getElementById('error-msg');
@@ -46,146 +46,121 @@ function startSyncTimer(startTime, duration, fillId, valId) {
   timerInterval = setInterval(tick, 500);
 }
 
-// ===== КНОПКИ З ПРИКОЛАМИ (спільна логіка) =====
+// ===== КНОПКИ З ПРИКОЛАМИ =====
 const BUTTON_TEXTS = {
-  run: ['ПОЧАТИ ГРУ 🚀','ЕЙ СТІЙ!','НЕ ЖЕНИ!','ОК ДОБРЕ 🚀'],
-  angry: ['ПОЧАТИ ГРУ 🚀','ТИ МЕНІ НЕ ТИКАЙ','СКАЗАЛА НІ!','НУ І ЩО ТИ ЗРОБИШ?','ОК ЗАПУСКАЮ 😤'],
-  cry: ['ПОЧАТИ ГРУ 🚀','НЕВЖЕ ТИ НАТИСНЕШ? 🥺','МЕНІ БОЛЯЧЕ...','ОК ОК ЗАПУСКАЮ 😭'],
-  lie: ['ПОЧАТИ ГРУ 🚀','ОБМАНУЛА ХА-ХА 😝','ЗАРАЗ ЗАПУЩУ... НІ','ОК РЕАЛЬНО ЗАПУСКАЮ'],
-  flirt: ['ПОЧАТИ ГРУ 🚀','СПОЧАТКУ СКАЖИ ЩО Я ГАРНА','ЛАДНО ТАК І БУТИ 😏'],
-  melt: ['ПОЧАТИ ГРУ 🚀','я.. тану.. 🫠','ок зібралась 🚀'],
-  panic: ['ПОЧАТИ ГРУ 🚀','НЕ НАТИСКАЙ!!','СТІЙ!','ОЙ ВСЕ ОДНО 😱'],
-  flip: ['ПОЧАТИ ГРУ 🚀','ʞɔɐq ǝɯ pɐǝɹ','ЗАПУСКАЮ 🚀'],
-  disappear: ['ПОЧАТИ ГРУ 🚀','...','ТУТ Я!','ЗАПУСКАЮ 🚀'],
-  joke: ['ПОЧАТИ ГРУ 🚀','ЧЕКАЙ АНЕКДОТ!','ЧОМУ КНОПКА НЕ СМІЄТЬСЯ? БО ЇЇ НАТИСКАЮТЬ 😂','ЗАПУСКАЮ 🚀'],
-  broken: ['ПОЧАТИ ГРУ 🚀','ПМИЛКА 404','Ж@#ТУЮ ВСЕ ОК','ЗАПУСКАЮ 🚀'],
-  password: ['ПОЧАТИ ГРУ 🚀','ВВЕДИ ПАРОЛЬ:','НЕПРАВИЛЬНО','ЛАДНО ПУСКАЮ 🚀'],
-  countdown: ['ПОЧАТИ ГРУ 🚀','3...','2...','1...','НІ! 😈','ЗАПУСКАЮ 🚀'],
-  regret: ['ПОЧАТИ ГРУ 🚀','ЗАПУСТИЛА... ШКОДУЮ','АЛЕ ОК 🚀'],
-  confirm: ['ПОЧАТИ ГРУ 🚀','ТИ ВПЕВНЕНИЙ?','ТОЧНО?','НУ ДОБРЕ 🚀']
+  run: ['ПОЧАТИ ГРУ 🚀', 'ЕЙ СТІЙ!', 'НЕ ЖЕНИ!', 'ОК ДОБРЕ 🚀'],
+  angry: ['ПОЧАТИ ГРУ 🚀', 'ТИ МЕНІ НЕ ТИКАЙ', 'СКАЗАЛА НІ!', 'НУ І ЩО ТИ ЗРОБИШ?', 'ОК ЗАПУСКАЮ 😤'],
+  cry: ['ПОЧАТИ ГРУ 🚀', 'НЕВЖЕ ТИ НАТИСНЕШ? 🥺', 'МЕНІ БОЛЯЧЕ...', 'ОК ОК ЗАПУСКАЮ 😭'],
+  lie: ['ПОЧАТИ ГРУ 🚀', 'ОБМАНУЛА ХА-ХА 😝', 'ЗАРАЗ ЗАПУЩУ... НІ', 'ОК РЕАЛЬНО ЗАПУСКАЮ'],
+  flirt: ['ПОЧАТИ ГРУ 🚀', 'СПОЧАТКУ СКАЖИ ЩО Я ГАРНА', 'ЛАДНО ТАК І БУТИ 😏'],
+  melt: ['ПОЧАТИ ГРУ 🚀', 'я.. тану.. 🫠', 'ок зібралась 🚀'],
+  panic: ['ПОЧАТИ ГРУ 🚀', 'НЕ НАТИСКАЙ!!', 'СТІЙ!', 'ОЙ ВСЕ ОДНО 😱'],
+  flip: ['ПОЧАТИ ГРУ 🚀', 'ʞɔɐq ǝɯ pɐǝɹ', 'ЗАПУСКАЮ 🚀'],
+  disappear: ['ПОЧАТИ ГРУ 🚀', '...', 'ТУТ Я!', 'ЗАПУСКАЮ 🚀'],
+  joke: ['ПОЧАТИ ГРУ 🚀', 'ЧЕКАЙ АНЕКДОТ!', 'ЧОМУ КНОПКА НЕ СМІЄТЬСЯ? БО ЇЇ НАТИСКАЮТЬ 😂', 'ЗАПУСКАЮ 🚀'],
+  broken: ['ПОЧАТИ ГРУ 🚀', 'ПМИЛКА 404', 'Ж@#ТУЮ ВСЕ ОК', 'ЗАПУСКАЮ 🚀'],
+  password: ['ПОЧАТИ ГРУ 🚀', 'ВВЕДИ ПАРОЛЬ:', 'НЕПРАВИЛЬНО', 'ЛАДНО ПУСКАЮ 🚀'],
+  countdown: ['ПОЧАТИ ГРУ 🚀', '3...', '2...', '1...', 'НІ! 😈', 'ЗАПУСКАЮ 🚀'],
+  regret: ['ПОЧАТИ ГРУ 🚀', 'ЗАПУСТИЛА... ШКОДУЮ', 'АЛЕ ОК 🚀'],
+  confirm: ['ПОЧАТИ ГРУ 🚀', 'ТИ ВПЕВНЕНИЙ?', 'ТОЧНО?', 'НУ ДОБРЕ 🚀']
 };
 
-// Тексти для кнопки "Я ГОТОВИЙ" гостей
 const READY_TEXTS = {
-  run: ['Я ГОТОВИЙ 🙋','ЩЕ НІ!','МАЙЖЕ!','ОК ГОТОВИЙ 🙋'],
-  angry: ['Я ГОТОВИЙ 🙋','ТА ЯК Я МОЖУ БУТИ ГОТОВИМ','НУ ДОБРЕ 🙋'],
-  cry: ['Я ГОТОВИЙ 🙋','Я БОЮСЬ 🥺','ОК ОК ГОТОВИЙ 😭'],
-  lie: ['Я ГОТОВИЙ 🙋','НЕ ГОТОВИЙ ХА-ХА','ОК РЕАЛЬНО ГОТОВИЙ 🙋'],
-  flirt: ['Я ГОТОВИЙ 🙋','ЗАЛЕЖИТЬ ВІД ЗАВДАННЯ 😏','ДОБРЕ 🙋'],
-  melt: ['Я ГОТОВИЙ 🙋','я.. тану від хвилювання 🫠','зібрався 🙋'],
-  panic: ['Я ГОТОВИЙ 🙋','НЕ ГОТОВИЙ!!','ОЙ ВСЕ ОДНО 😱','ГОТОВИЙ 🙋'],
-  flip: ['Я ГОТОВИЙ 🙋','ʎoʇoƃ ʎ','ГОТОВИЙ 🙋'],
-  disappear: ['Я ГОТОВИЙ 🙋','...','ТУТ Я!','ГОТОВИЙ 🙋'],
-  joke: ['Я ГОТОВИЙ 🙋','ЧЕКАЙ АНЕКДОТ!','ГОТОВИЙ БО ХОЧУ ВИГРАТИ 😂','ГОТОВИЙ 🙋'],
-  broken: ['Я ГОТОВИЙ 🙋','ПМИЛКА 404','ВСЕ ОК','ГОТОВИЙ 🙋'],
-  password: ['Я ГОТОВИЙ 🙋','ВВЕДИ ПАРОЛЬ:','НЕПРАВИЛЬНО','ГОТОВИЙ 🙋'],
-  countdown: ['Я ГОТОВИЙ 🙋','3...','2...','1...','НІ! 😈','ГОТОВИЙ 🙋'],
-  regret: ['Я ГОТОВИЙ 🙋','ГОТОВИЙ... ШКОДУЮ','АЛЕ ОК 🙋'],
-  confirm: ['Я ГОТОВИЙ 🙋','ТИ ВПЕВНЕНИЙ ЩО Я ГОТОВИЙ?','ДОБРЕ 🙋']
+  run: ['Я ГОТОВИЙ 🙋', 'ЩЕ НІ!', 'МАЙЖЕ!', 'ОК ГОТОВИЙ 🙋'],
+  angry: ['Я ГОТОВИЙ 🙋', 'ТА ЯК Я МОЖУ БУТИ ГОТОВИМ', 'НУ ДОБРЕ 🙋'],
+  cry: ['Я ГОТОВИЙ 🙋', 'Я БОЮСЬ 🥺', 'ОК ОК ГОТОВИЙ 😭'],
+  lie: ['Я ГОТОВИЙ 🙋', 'НЕ ГОТОВИЙ ХА-ХА', 'ОК РЕАЛЬНО ГОТОВИЙ 🙋'],
+  flirt: ['Я ГОТОВИЙ 🙋', 'ЗАЛЕЖИТЬ ВІД ЗАВДАННЯ 😏', 'ДОБРЕ 🙋'],
+  melt: ['Я ГОТОВИЙ 🙋', 'я.. тану від хвилювання 🫠', 'зібрався 🙋'],
+  panic: ['Я ГОТОВИЙ 🙋', 'НЕ ГОТОВИЙ!!', 'ОЙ ВСЕ ОДНО 😱', 'ГОТОВИЙ 🙋'],
+  flip: ['Я ГОТОВИЙ 🙋', 'ʎoʇoƃ ʎ', 'ГОТОВИЙ 🙋'],
+  disappear: ['Я ГОТОВИЙ 🙋', '...', 'ТУТ Я!', 'ГОТОВИЙ 🙋'],
+  joke: ['Я ГОТОВИЙ 🙋', 'ЧЕКАЙ АНЕКДОТ!', 'ГОТОВИЙ БО ХОЧУ ВИГРАТИ 😂', 'ГОТОВИЙ 🙋'],
+  broken: ['Я ГОТОВИЙ 🙋', 'ПМИЛКА 404', 'ВСЕ ОК', 'ГОТОВИЙ 🙋'],
+  password: ['Я ГОТОВИЙ 🙋', 'ВВЕДИ ПАРОЛЬ:', 'НЕПРАВИЛЬНО', 'ГОТОВИЙ 🙋'],
+  countdown: ['Я ГОТОВИЙ 🙋', '3...', '2...', '1...', 'НІ! 😈', 'ГОТОВИЙ 🙋'],
+  regret: ['Я ГОТОВИЙ 🙋', 'ГОТОВИЙ... ШКОДУЮ', 'АЛЕ ОК 🙋'],
+  confirm: ['Я ГОТОВИЙ 🙋', 'ТИ ВПЕВНЕНИЙ ЩО Я ГОТОВИЙ?', 'ДОБРЕ 🙋']
 };
 
-function handlePrankBtn(btn, behavior, texts, onDone, clicksRef) {
-  if (behavior === 'run') {
-    if (clicksRef.count < 3) {
-      btn.classList.remove('running'); void btn.offsetWidth; btn.classList.add('running');
-      btn.textContent = texts[Math.min(clicksRef.count + 1, texts.length - 2)];
-      clicksRef.count++;
-      const maxX = 80;
-      btn.style.position = 'relative';
-      btn.style.left = (Math.random() * maxX - maxX / 2) + 'px';
-      btn.style.top = (Math.random() * 40 - 20) + 'px';
+function runPrankBtn(btn, behavior, allTexts, onDone) {
+  const texts = allTexts[behavior] || allTexts['angry'];
+  let clicks = 0;
+
+  function press() {
+    if (behavior === 'run') {
+      if (clicks < 3) {
+        btn.classList.remove('running'); void btn.offsetWidth; btn.classList.add('running');
+        btn.textContent = texts[Math.min(clicks + 1, texts.length - 2)];
+        clicks++;
+        btn.style.position = 'relative';
+        btn.style.left = (Math.random() * 80 - 40) + 'px';
+        btn.style.top = (Math.random() * 40 - 20) + 'px';
+      } else {
+        btn.style.left = '0'; btn.style.top = '0';
+        btn.textContent = texts[texts.length - 1];
+        btn.removeEventListener('click', press);
+        setTimeout(onDone, 400);
+      }
+      return;
+    }
+    if (behavior === 'melt') {
+      if (clicks === 0) {
+        btn.classList.add('melting'); btn.textContent = texts[1]; clicks++;
+        setTimeout(() => { btn.classList.remove('melting'); btn.textContent = texts[2]; }, 1000);
+      } else { btn.removeEventListener('click', press); onDone(); }
+      return;
+    }
+    if (behavior === 'flip') {
+      if (clicks === 0) {
+        btn.classList.add('flipping'); btn.textContent = texts[1]; clicks++;
+        setTimeout(() => { btn.classList.remove('flipping'); btn.textContent = texts[2]; }, 600);
+      } else { btn.removeEventListener('click', press); onDone(); }
+      return;
+    }
+    if (behavior === 'disappear') {
+      if (clicks === 0) {
+        btn.classList.add('blinking'); btn.textContent = texts[1]; clicks++;
+        setTimeout(() => { btn.classList.remove('blinking'); btn.textContent = texts[2]; }, 1200);
+      } else if (clicks === 1) {
+        btn.textContent = texts[3]; clicks++;
+        btn.removeEventListener('click', press);
+        setTimeout(onDone, 300);
+      }
+      return;
+    }
+    if (behavior === 'regret') {
+      if (clicks === 0) {
+        btn.textContent = texts[1]; clicks++;
+        setTimeout(() => { btn.textContent = texts[2]; clicks++; }, 1500);
+      } else if (clicks >= 2) { btn.removeEventListener('click', press); onDone(); }
+      return;
+    }
+    if (behavior === 'password') {
+      if (clicks === 0) { btn.textContent = texts[1]; clicks++; }
+      else if (clicks === 1) {
+        btn.textContent = texts[2]; clicks++;
+        setTimeout(() => { btn.textContent = texts[3]; clicks++; }, 1000);
+      } else if (clicks >= 3) { btn.removeEventListener('click', press); onDone(); }
+      return;
+    }
+    // Sequential default
+    if (['angry', 'panic'].includes(behavior)) {
+      btn.classList.remove('shaking'); void btn.offsetWidth; btn.classList.add('shaking');
+    }
+    if (behavior === 'broken') {
+      if (clicks === 1) { btn.style.background = '#999'; btn.style.transform = 'skew(-5deg)'; }
+      else if (clicks === 2) { btn.style.background = ''; btn.style.transform = ''; }
+    }
+    if (clicks < texts.length - 1) {
+      btn.textContent = texts[clicks + 1]; clicks++;
     } else {
-      btn.style.left = '0'; btn.style.top = '0';
-      btn.textContent = texts[texts.length - 1];
-      setTimeout(onDone, 400);
+      btn.removeEventListener('click', press);
+      onDone();
     }
-    return;
   }
-  if (behavior === 'melt') {
-    if (clicksRef.count === 0) {
-      btn.classList.add('melting'); btn.textContent = texts[1]; clicksRef.count++;
-      setTimeout(() => { btn.classList.remove('melting'); btn.textContent = texts[2]; }, 1000);
-    } else { onDone(); }
-    return;
-  }
-  if (behavior === 'flip') {
-    if (clicksRef.count === 0) {
-      btn.classList.add('flipping'); btn.textContent = texts[1]; clicksRef.count++;
-      setTimeout(() => { btn.classList.remove('flipping'); btn.textContent = texts[2]; }, 600);
-    } else { onDone(); }
-    return;
-  }
-  if (behavior === 'disappear') {
-    if (clicksRef.count === 0) {
-      btn.classList.add('blinking'); btn.textContent = texts[1]; clicksRef.count++;
-      setTimeout(() => { btn.classList.remove('blinking'); btn.textContent = texts[2]; }, 1200);
-    } else if (clicksRef.count === 1) {
-      btn.textContent = texts[3]; clicksRef.count++;
-      setTimeout(onDone, 300);
-    }
-    return;
-  }
-  if (behavior === 'regret') {
-    if (clicksRef.count === 0) {
-      btn.textContent = texts[1]; clicksRef.count++;
-      setTimeout(() => { btn.textContent = texts[2]; clicksRef.count++; }, 1500);
-    } else if (clicksRef.count >= 2) { onDone(); }
-    return;
-  }
-  if (behavior === 'password') {
-    if (clicksRef.count === 0) { btn.textContent = texts[1]; clicksRef.count++; }
-    else if (clicksRef.count === 1) {
-      btn.textContent = texts[2]; clicksRef.count++;
-      setTimeout(() => { btn.textContent = texts[3]; clicksRef.count++; }, 1000);
-    } else if (clicksRef.count >= 3) { onDone(); }
-    return;
-  }
-  // Default: sequential texts
-  if (['angry','panic'].includes(behavior)) {
-    btn.classList.remove('shaking'); void btn.offsetWidth; btn.classList.add('shaking');
-  }
-  if (behavior === 'broken') {
-    if (clicksRef.count === 1) { btn.style.background = '#999'; btn.style.transform = 'skew(-5deg)'; }
-    else if (clicksRef.count === 2) { btn.style.background = ''; btn.style.transform = ''; }
-  }
-  if (clicksRef.count < texts.length - 1) {
-    btn.textContent = texts[clicksRef.count + 1]; clicksRef.count++;
-  } else { onDone(); }
-}
 
-// ===== ХОСТ: кнопка ПОЧАТИ ГРУ =====
-const hostBtnClicks = { count: 0 };
-
-function handleStartBtn() {
-  const btn = document.getElementById('startBtn');
-  const texts = BUTTON_TEXTS[btnBehavior] || BUTTON_TEXTS['angry'];
-  handlePrankBtn(btn, btnBehavior, texts, reallyStart, hostBtnClicks);
-}
-
-function reallyStart() {
-  const btn = document.getElementById('startBtn');
-  btn.textContent = 'ЗАПУСКАЄМО... 🎉';
-  btn.disabled = true;
-  socket.emit('startGame', { code: myRoomCode });
-}
-
-// ===== ГІСТЬ: кнопка Я ГОТОВИЙ =====
-const guestBtnClicks = { count: 0 };
-let guestReady = false;
-
-function handleReadyBtn() {
-  if (guestReady) return;
-  const btn = document.getElementById('readyBtn');
-  const texts = READY_TEXTS[btnBehavior] || READY_TEXTS['angry'];
-  handlePrankBtn(btn, btnBehavior, texts, () => {
-    // Після приколу — реально готовий
-    guestReady = true;
-    btn.textContent = '✅ ГОТОВИЙ!';
-    btn.style.background = 'var(--green)';
-    btn.style.color = 'var(--dark)';
-    btn.disabled = true;
-    socket.emit('playerReady', { code: myRoomCode });
-  }, guestBtnClicks);
+  btn.addEventListener('click', press);
 }
 
 // ===== ВХІД =====
@@ -208,14 +183,17 @@ document.getElementById('joinBtn').addEventListener('click', () => {
 document.getElementById('playerName').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('joinBtn').click(); });
 document.getElementById('roomCode').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('joinBtn').click(); });
 
-// Правила
+// ===== ПРАВИЛА — фікс: зберігаємо і відкриваємо по кнопці =====
 document.getElementById('rulesBtn').addEventListener('click', () => {
-  document.getElementById('rulesText').textContent = rules || 'Завантаження...';
+  const text = rules || 'Правила завантажуються...';
+  document.getElementById('rulesText').textContent = text;
   showScreen('screen-rules');
 });
-document.getElementById('closeRulesBtn').addEventListener('click', () => { showScreen('screen-enter'); });
+document.getElementById('closeRulesBtn').addEventListener('click', () => {
+  showScreen('screen-enter');
+});
 
-// ===== SOCKET EVENTS =====
+// ===== SOCKET =====
 socket.on('connect', () => { myId = socket.id; });
 
 socket.on('roomCreated', ({ code, btnBehavior: bh, rules: r }) => {
@@ -223,7 +201,15 @@ socket.on('roomCreated', ({ code, btnBehavior: bh, rules: r }) => {
   document.getElementById('displayCode').textContent = code;
   document.getElementById('host-controls').style.display = 'block';
   document.getElementById('guest-controls').style.display = 'none';
-  document.getElementById('startBtn').addEventListener('click', handleStartBtn);
+
+  const startBtn = document.getElementById('startBtn');
+  startBtn.textContent = BUTTON_TEXTS[bh] ? BUTTON_TEXTS[bh][0] : 'ПОЧАТИ ГРУ 🚀';
+  runPrankBtn(startBtn, bh, BUTTON_TEXTS, () => {
+    startBtn.textContent = 'ЗАПУСКАЄМО... 🎉';
+    startBtn.disabled = true;
+    socket.emit('startGame', { code: myRoomCode });
+  });
+
   showScreen('screen-button');
 });
 
@@ -233,11 +219,16 @@ socket.on('joinedRoom', ({ code, btnBehavior: bh, rules: r }) => {
   document.getElementById('host-controls').style.display = 'none';
   document.getElementById('guest-controls').style.display = 'block';
 
-  // Налаштовуємо кнопку гостя з приколом
   const readyBtn = document.getElementById('readyBtn');
-  const texts = READY_TEXTS[bh] || READY_TEXTS['angry'];
-  readyBtn.textContent = texts[0];
-  readyBtn.addEventListener('click', handleReadyBtn);
+  readyBtn.textContent = READY_TEXTS[bh] ? READY_TEXTS[bh][0] : 'Я ГОТОВИЙ 🙋';
+  runPrankBtn(readyBtn, bh, READY_TEXTS, () => {
+    guestReady = true;
+    readyBtn.textContent = '✅ ГОТОВИЙ!';
+    readyBtn.style.background = 'var(--green)';
+    readyBtn.style.color = 'var(--dark)';
+    readyBtn.disabled = true;
+    socket.emit('playerReady', { code: myRoomCode });
+  });
 
   showScreen('screen-button');
 });
@@ -252,7 +243,7 @@ socket.on('updatePlayers', (updated) => {
   players.forEach((p, i) => {
     const chip = document.createElement('div');
     chip.className = `player-chip chip-${i % 6}`;
-    chip.innerHTML = `${p.name} ${p.ready ? '✅' : '⏳'}`;
+    chip.textContent = p.ready ? `✅ ${p.name}` : `⏳ ${p.name}`;
     container.appendChild(chip);
   });
 });
@@ -270,15 +261,13 @@ socket.on('gameStarted', () => {
 });
 
 socket.on('warmupMessage', ({ message }) => {
-  // Показуємо повідомлення — воно НЕ закривається само
   document.getElementById('warmupText').textContent = message;
   document.getElementById('warmupCard').style.display = 'block';
   document.getElementById('warmupWaiting').style.display = 'none';
 });
 
 document.getElementById('warmupOkBtn').addEventListener('click', () => {
-  // Тільки ховаємо картку — не переходимо на інший екран
-  // Гравець залишається на розігріві і чекає поки сервер запустить раунд
+  // Ховаємо картку — гравець чекає на екрані розігріву поки сервер стартує раунд
   document.getElementById('warmupCard').style.display = 'none';
   document.getElementById('warmupWaiting').style.display = 'block';
 });
@@ -295,22 +284,26 @@ socket.on('roundStarted', ({ playerName, playerId, format, formatLabel, task, ro
   document.getElementById('scorePill').textContent = `⭐ ${myScore}`;
 
   const avatar = document.getElementById('spotlightAvatar');
-  avatar.className = `spotlight-avatar ${getAvatarClass(playerIndex)}`;
+  avatar.className = `spotlight-avatar ${getAvatarClass(playerIndex < 0 ? 0 : playerIndex)}`;
   avatar.textContent = getInitial(playerName);
   document.getElementById('spotlightName').textContent = playerName;
 
   const badge = document.getElementById('formatBadge');
   badge.textContent = formatLabel;
   badge.className = `format-badge format-${format}`;
-
   document.getElementById('taskText').textContent = task;
+
+  // Показуємо кнопки тільки тому хто виступає
   document.getElementById('my-turn-actions').style.display = isMyTurn ? 'block' : 'none';
   document.getElementById('others-actions').style.display = isMyTurn ? 'none' : 'block';
+  // Кнопка дострокового завершення — тільки хосту
   document.getElementById('host-end-round').style.display = isHost ? 'block' : 'none';
 
   if (isMyTurn) {
     document.getElementById('skipsLeft').textContent = `${skipsLeft} пропуски`;
-    document.getElementById('skipBtn').disabled = false;
+    const skipBtn = document.getElementById('skipBtn');
+    skipBtn.disabled = false;
+    skipBtn.style.opacity = '1';
   }
 
   startSyncTimer(startTime, duration, 'timerFill', 'timerVal');
@@ -320,12 +313,18 @@ socket.on('roundStarted', ({ playerName, playerId, format, formatLabel, task, ro
 socket.on('taskSkipped', ({ task, skipsLeft }) => {
   document.getElementById('taskText').textContent = task;
   document.getElementById('skipsLeft').textContent = `${skipsLeft} пропуски`;
-  if (skipsLeft <= 0) document.getElementById('skipBtn').disabled = true;
+  if (skipsLeft <= 0) {
+    const skipBtn = document.getElementById('skipBtn');
+    skipBtn.disabled = true;
+    skipBtn.style.opacity = '0.4';
+  }
 });
 
 socket.on('noSkipsLeft', () => {
   document.getElementById('skipsLeft').textContent = '0 пропусків';
-  document.getElementById('skipBtn').disabled = true;
+  const skipBtn = document.getElementById('skipBtn');
+  skipBtn.disabled = true;
+  skipBtn.style.opacity = '0.4';
 });
 
 document.getElementById('skipBtn').addEventListener('click', () => {
@@ -438,7 +437,7 @@ socket.on('showVoting', ({ currentPlayerId: cpId, currentPlayerName }) => {
     document.getElementById('scoreSliderWrap').style.display = 'block';
     document.getElementById('submitVoteBtn').style.display = 'block';
     document.getElementById('voted-waiting').style.display = 'none';
-    document.getElementById('voteSub').textContent = `Оціни виступ ${currentPlayerName}`;
+    document.getElementById('voteSub').textContent = `Оціни виступ: ${currentPlayerName}`;
     document.getElementById('scoreSlider').value = 5;
     document.getElementById('scoreDisplay').textContent = '5';
   }
@@ -472,8 +471,8 @@ socket.on('votingResult', ({ playerId, playerName, avgScore, players: updated })
 function renderScoreList(playerList) {
   const sorted = [...playerList].sort((a, b) => b.score - a.score);
   const maxScore = sorted[0]?.score || 1;
-  const medals = ['🥇','🥈','🥉'];
-  const colors = ['var(--orange)','var(--blue)','var(--purple)','var(--green)','var(--yellow)','var(--pink)'];
+  const medals = ['🥇', '🥈', '🥉'];
+  const colors = ['var(--orange)', 'var(--blue)', 'var(--purple)', 'var(--green)', 'var(--yellow)', 'var(--pink)'];
   const container = document.getElementById('scoreList');
   container.innerHTML = '';
   sorted.forEach((p, i) => {
@@ -481,12 +480,12 @@ function renderScoreList(playerList) {
     const row = document.createElement('div');
     row.className = 'score-row';
     row.innerHTML = `
-      <div class="score-rank">${medals[i] || (i+1)+'.'}  </div>
+      <div class="score-rank">${medals[i] || (i + 1) + '.'}</div>
       <div class="score-bar-wrap">
         <div class="score-player-name">${p.name}</div>
-        <div class="score-bar-track"><div class="score-bar-fill" style="width:${pct}%;background:${colors[i%colors.length]}"></div></div>
+        <div class="score-bar-track"><div class="score-bar-fill" style="width:${pct}%;background:${colors[i % colors.length]}"></div></div>
       </div>
-      <div class="score-points" style="color:${colors[i%colors.length]}">${p.score}</div>
+      <div class="score-points" style="color:${colors[i % colors.length]}">${p.score}</div>
     `;
     container.appendChild(row);
   });
@@ -498,8 +497,8 @@ document.getElementById('nextRoundBtn').addEventListener('click', () => {
 
 socket.on('gameEnded', ({ players: final }) => {
   clearInterval(timerInterval);
-  const medals = ['🥇','🥈','🥉'];
-  const colors = ['var(--orange)','var(--blue)','var(--purple)','var(--green)','var(--yellow)','var(--pink)'];
+  const medals = ['🥇', '🥈', '🥉'];
+  const colors = ['var(--orange)', 'var(--blue)', 'var(--purple)', 'var(--green)', 'var(--yellow)', 'var(--pink)'];
   const container = document.getElementById('finalList');
   container.innerHTML = '';
   final.forEach((p, i) => {
@@ -508,7 +507,7 @@ socket.on('gameEnded', ({ players: final }) => {
     row.innerHTML = `
       <div class="final-rank">${medals[i] || '🎖️'}</div>
       <div class="final-name">${p.name}</div>
-      <div class="final-score" style="color:${colors[i%colors.length]}">${p.score} ⭐</div>
+      <div class="final-score" style="color:${colors[i % colors.length]}">${p.score} ⭐</div>
     `;
     container.appendChild(row);
   });
