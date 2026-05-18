@@ -17,15 +17,6 @@ function generateCode() {
   return 'EFIR-' + code;
 }
 
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 const FORMATS = ['story', 'transform', 'duel', 'sabotage', 'challenge'];
 
 const TASKS = {
@@ -569,7 +560,7 @@ io.on('connection', (socket) => {
     const btnBehavior = BUTTON_BEHAVIORS[Math.floor(Math.random() * BUTTON_BEHAVIORS.length)];
     rooms[code] = {
       code, host: socket.id,
-      players: [{ id: socket.id, name, score: 0, callCount: 0, skipsLeft: 3 }],
+      players: [{ id: socket.id, name, score: 0, callCount: 0, skipsLeft: 3, ready: false, btnBehavior }],
       state: 'lobby',
       usedTasks: { story: [], transform: [], duel: [], sabotage: [], challenge: [] },
       lastFormat: null, currentPlayer: null, secondPlayer: null,
@@ -587,11 +578,22 @@ io.on('connection', (socket) => {
     if (!room) { socket.emit('error', 'Кімнату не знайдено'); return; }
     if (room.state !== 'lobby') { socket.emit('error', 'Гра вже почалась'); return; }
     const btnBehavior = BUTTON_BEHAVIORS[Math.floor(Math.random() * BUTTON_BEHAVIORS.length)];
-    room.players.push({ id: socket.id, name, score: 0, callCount: 0, skipsLeft: 3 });
+    room.players.push({ id: socket.id, name, score: 0, callCount: 0, skipsLeft: 3, ready: false, btnBehavior });
     socket.join(code);
     socket.data.roomCode = code;
     socket.emit('joinedRoom', { code, btnBehavior, rules: RULES });
     io.to(code).emit('updatePlayers', room.players);
+  });
+
+  // Гравець натиснув свою кнопку "Я ГОТОВИЙ"
+  socket.on('playerReady', ({ code }) => {
+    const room = rooms[code];
+    if (!room) return;
+    const player = room.players.find(p => p.id === socket.id);
+    if (player) player.ready = true;
+    const readyCount = room.players.filter(p => p.ready).length;
+    io.to(code).emit('updatePlayers', room.players);
+    io.to(code).emit('readyUpdate', { readyCount, total: room.players.length });
   });
 
   socket.on('startGame', ({ code }) => {
@@ -599,12 +601,21 @@ io.on('connection', (socket) => {
     if (!room || room.host !== socket.id) return;
     room.state = 'warmup';
     io.to(code).emit('gameStarted');
+
+    // Надсилаємо розігрів кожному — і після цього запускаємо раунд
+    let warmupsSent = 0;
     room.players.forEach((p) => {
-      const delay = 2000 + Math.random() * 8000;
+      const delay = 1000 + Math.random() * 6000;
       const msg = WARMUP[Math.floor(Math.random() * WARMUP.length)];
-      setTimeout(() => { io.to(p.id).emit('warmupMessage', { message: msg }); }, delay);
+      setTimeout(() => {
+        io.to(p.id).emit('warmupMessage', { message: msg });
+      }, delay);
     });
-    setTimeout(() => { startRound(code); }, 12000);
+
+    // Перший раунд через 14 секунд — достатньо для розігріву
+    setTimeout(() => {
+      startRound(code);
+    }, 14000);
   });
 
   socket.on('endRoundEarly', ({ code }) => {
