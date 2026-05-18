@@ -560,17 +560,18 @@ io.on('connection', (socket) => {
     const btnBehavior = BUTTON_BEHAVIORS[Math.floor(Math.random() * BUTTON_BEHAVIORS.length)];
     rooms[code] = {
       code, host: socket.id,
-      players: [{ id: socket.id, name, score: 0, callCount: 0, skipsLeft: 3, ready: false, btnBehavior }],
+      players: [{ id: socket.id, name, score: 0, callCount: 0, skipsLeft: 3, ready: true, btnBehavior }],
       state: 'lobby',
       usedTasks: { story: [], transform: [], duel: [], sabotage: [], challenge: [] },
       lastFormat: null, currentPlayer: null, secondPlayer: null,
-      votes: {}, roundNum: 0, _timer: null,
+      votes: {}, roundNum: 0, _timer: null, _votingDone: false,
       duelVotes: {}, duelQuestions: [], duelCurrentQ: 0
     };
     socket.join(code);
     socket.data.roomCode = code;
     socket.emit('roomCreated', { code, btnBehavior, rules: RULES });
-    socket.emit('updatePlayers', rooms[code].players);
+    io.to(code).emit('updatePlayers', rooms[code].players);
+    io.to(code).emit('readyUpdate', { readyCount: 1, total: 1 });
   });
 
   socket.on('joinRoom', ({ name, code }) => {
@@ -583,17 +584,20 @@ io.on('connection', (socket) => {
     socket.data.roomCode = code;
     socket.emit('joinedRoom', { code, btnBehavior, rules: RULES });
     io.to(code).emit('updatePlayers', room.players);
+    const readyCount = room.players.filter(p => p.ready).length;
+    io.to(code).emit('readyUpdate', { readyCount, total: room.players.length });
   });
 
-  // Гравець натиснув свою кнопку "Я ГОТОВИЙ"
   socket.on('playerReady', ({ code }) => {
     const room = rooms[code];
     if (!room) return;
     const player = room.players.find(p => p.id === socket.id);
-    if (player) player.ready = true;
-    const readyCount = room.players.filter(p => p.ready).length;
-    io.to(code).emit('updatePlayers', room.players);
-    io.to(code).emit('readyUpdate', { readyCount, total: room.players.length });
+    if (player && !player.ready) {
+      player.ready = true;
+      io.to(code).emit('updatePlayers', room.players);
+      const readyCount = room.players.filter(p => p.ready).length;
+      io.to(code).emit('readyUpdate', { readyCount, total: room.players.length });
+    }
   });
 
   socket.on('startGame', ({ code }) => {
@@ -601,9 +605,6 @@ io.on('connection', (socket) => {
     if (!room || room.host !== socket.id) return;
     room.state = 'warmup';
     io.to(code).emit('gameStarted');
-
-    // Надсилаємо розігрів кожному — і після цього запускаємо раунд
-    let warmupsSent = 0;
     room.players.forEach((p) => {
       const delay = 1000 + Math.random() * 6000;
       const msg = WARMUP[Math.floor(Math.random() * WARMUP.length)];
@@ -611,27 +612,33 @@ io.on('connection', (socket) => {
         io.to(p.id).emit('warmupMessage', { message: msg });
       }, delay);
     });
-
-    // Перший раунд через 14 секунд — достатньо для розігріву
-    setTimeout(() => {
-      startRound(code);
-    }, 14000);
+    setTimeout(() => { startRound(code); }, 14000);
   });
 
+  // Дострокове завершення — БУДЬ-ЯКИЙ гравець може завершити СВІЙ раунд
   socket.on('endRoundEarly', ({ code }) => {
     const room = rooms[code];
-    if (!room || room.host !== socket.id) return;
+    if (!room) return;
+    // Тільки хост може завершити достроково
+    if (room.host !== socket.id) return;
     clearRoomTimer(room);
-    if (room.state === 'duel') { endDuel(code); }
-    else if (room.state === 'round') { showVoting(code); }
+    if (room.state === 'duel') {
+      endDuel(code);
+    } else if (room.state === 'round') {
+      showVoting(code);
+    }
   });
 
+  // Пропуск завдання — тільки активний гравець
   socket.on('skipTask', ({ code }) => {
     const room = rooms[code];
-    if (!room) return;
+    if (!room || room.state !== 'round') return;
+    if (room.currentPlayer !== socket.id) return;
     const player = room.players.find(p => p.id === socket.id);
-    if (!player || player.id !== room.currentPlayer) return;
-    if (player.skipsLeft <= 0) { socket.emit('noSkipsLeft'); return; }
+    if (!player || player.skipsLeft <= 0) {
+      socket.emit('noSkipsLeft');
+      return;
+    }
     player.skipsLeft--;
     const task = getTask(room, room.lastFormat);
     room.currentTask = task;
@@ -640,18 +647,24 @@ io.on('connection', (socket) => {
 
   socket.on('submitVote', ({ code, score }) => {
     const room = rooms[code];
-    if (!room) return;
+    if (!room || room.state !== 'voting') return;
+    if (room.currentPlayer === socket.id) return; // активний не голосує
     room.votes[socket.id] = Number(score);
     const eligible = room.players.filter(p => p.id !== room.currentPlayer);
-    if (Object.keys(room.votes).length >= eligible.length) { resolveVoting(code); }
+    if (Object.keys(room.votes).length >= eligible.length) {
+      resolveVoting(code);
+    }
   });
 
   socket.on('submitDuelVote', ({ code, winnerId }) => {
     const room = rooms[code];
     if (!room) return;
+    if (room.currentPlayer === socket.id || room.secondPlayer === socket.id) return;
     room.duelVotes[socket.id] = winnerId;
     const eligible = room.players.filter(p => p.id !== room.currentPlayer && p.id !== room.secondPlayer);
-    if (Object.keys(room.duelVotes).length >= eligible.length) { resolveDuelVoting(code); }
+    if (Object.keys(room.duelVotes).length >= eligible.length) {
+      resolveDuelVoting(code);
+    }
   });
 
   socket.on('nextRound', ({ code }) => {
@@ -672,7 +685,10 @@ io.on('connection', (socket) => {
 });
 
 function clearRoomTimer(room) {
-  if (room._timer) { clearTimeout(room._timer); room._timer = null; }
+  if (room._timer) {
+    clearTimeout(room._timer);
+    room._timer = null;
+  }
 }
 
 function getNextFormat(room) {
@@ -684,7 +700,10 @@ function getTask(room, format) {
   const all = TASKS[format];
   const used = room.usedTasks[format];
   const available = all.map((t, i) => ({ t, i })).filter(({ i }) => !used.includes(i));
-  if (available.length === 0) { room.usedTasks[format] = []; return all[Math.floor(Math.random() * all.length)]; }
+  if (available.length === 0) {
+    room.usedTasks[format] = [];
+    return all[Math.floor(Math.random() * all.length)];
+  }
   const pick = available[Math.floor(Math.random() * available.length)];
   used.push(pick.i);
   return pick.t;
@@ -702,6 +721,7 @@ function getNextPlayer(room) {
 function startRound(code) {
   const room = rooms[code];
   if (!room) return;
+
   const player = getNextPlayer(room);
   if (!player) { endGame(code); return; }
 
@@ -710,6 +730,7 @@ function startRound(code) {
   room.currentPlayer = player.id;
   room.secondPlayer = null;
   room.votes = {};
+  room._votingDone = false;
   room.roundNum++;
   player.callCount++;
   player.skipsLeft = 3;
@@ -720,18 +741,32 @@ function startRound(code) {
   room.currentTask = task;
   room.state = 'round';
 
-  const labels = { story: '🎤 Історія', transform: '🎭 Перевтілення', sabotage: '🃏 Саботаж', challenge: '🎯 Челендж' };
-  const startTime = Date.now();
+  const labels = {
+    story: '🎤 Історія',
+    transform: '🎭 Перевтілення',
+    sabotage: '🃏 Саботаж',
+    challenge: '🎯 Челендж'
+  };
 
+  const startTime = Date.now();
   io.to(code).emit('roundStarted', {
-    playerName: player.name, playerId: player.id,
-    format, formatLabel: labels[format],
-    task, roundNum: room.roundNum,
-    duration: 90, skipsLeft: 3, startTime
+    playerName: player.name,
+    playerId: player.id,
+    format,
+    formatLabel: labels[format],
+    task,
+    roundNum: room.roundNum,
+    duration: 90,
+    skipsLeft: 3,
+    startTime
   });
 
   clearRoomTimer(room);
-  room._timer = setTimeout(() => { showVoting(code); }, 90000);
+  room._timer = setTimeout(() => {
+    if (room.state === 'round') {
+      showVoting(code);
+    }
+  }, 91000);
 }
 
 function startDuel(code, player1) {
@@ -743,7 +778,11 @@ function startDuel(code, player1) {
   room.state = 'duel';
   room.duelVotes = {};
   room.duelCurrentQ = 0;
-  room.duelQuestions = [getTask(room, 'duel'), getTask(room, 'duel'), getTask(room, 'duel')];
+  room.duelQuestions = [
+    getTask(room, 'duel'),
+    getTask(room, 'duel'),
+    getTask(room, 'duel')
+  ];
 
   io.to(code).emit('duelStarted', {
     player1: { id: player1.id, name: player1.name },
@@ -756,39 +795,55 @@ function startDuel(code, player1) {
 
 function startDuelQuestion(code, qIndex) {
   const room = rooms[code];
-  if (!room) return;
+  if (!room || room.state !== 'duel') return;
   if (qIndex >= room.duelQuestions.length) { endDuel(code); return; }
 
   const question = room.duelQuestions[qIndex];
   const p1 = room.players.find(p => p.id === room.currentPlayer);
   const p2 = room.players.find(p => p.id === room.secondPlayer);
+  if (!p1 || !p2) { endDuel(code); return; }
+
   const first = qIndex % 2 === 0 ? p1 : p2;
   const second = qIndex % 2 === 0 ? p2 : p1;
   const startTime = Date.now();
 
   io.to(code).emit('duelQuestion', {
-    question, questionNum: qIndex + 1, totalQuestions: room.duelQuestions.length,
+    question,
+    questionNum: qIndex + 1,
+    totalQuestions: room.duelQuestions.length,
     firstPlayer: { id: first.id, name: first.name },
     secondPlayer: { id: second.id, name: second.name },
-    answeringId: first.id, duration: 45, startTime
+    answeringId: first.id,
+    duration: 45,
+    startTime
   });
 
   clearRoomTimer(room);
   room._timer = setTimeout(() => {
+    if (room.state !== 'duel') return;
     const startTime2 = Date.now();
     io.to(code).emit('duelSecondAnswer', {
-      answeringId: second.id, answeringName: second.name, duration: 45, startTime: startTime2
+      answeringId: second.id,
+      answeringName: second.name,
+      duration: 45,
+      startTime: startTime2
     });
-    room._timer = setTimeout(() => { startDuelQuestion(code, qIndex + 1); }, 45000);
-  }, 45000);
+    room._timer = setTimeout(() => {
+      if (room.state !== 'duel') return;
+      startDuelQuestion(code, qIndex + 1);
+    }, 46000);
+  }, 46000);
 }
 
 function endDuel(code) {
   const room = rooms[code];
   if (!room) return;
+  clearRoomTimer(room);
   const p1 = room.players.find(p => p.id === room.currentPlayer);
   const p2 = room.players.find(p => p.id === room.secondPlayer);
+  if (!p1 || !p2) return;
   room.duelVotes = {};
+  room.state = 'duelVoting';
   io.to(code).emit('duelVoting', {
     player1: { id: p1.id, name: p1.name },
     player2: { id: p2.id, name: p2.name }
@@ -809,12 +864,15 @@ function resolveDuelVoting(code) {
     const w = room.players.find(p => p.id === winnerId);
     if (w) w.score += Math.max(p1v, p2v);
   }
+  room.state = 'result';
   io.to(code).emit('duelResult', { winnerId, votes: tally, players: room.players });
 }
 
 function showVoting(code) {
   const room = rooms[code];
   if (!room) return;
+  if (room._votingDone) return;
+  room._votingDone = true;
   clearRoomTimer(room);
   room.state = 'voting';
   room.votes = {};
@@ -833,6 +891,7 @@ function resolveVoting(code) {
   const rounded = Math.round(avg * 10) / 10;
   const player = room.players.find(p => p.id === room.currentPlayer);
   if (player) player.score += Math.round(avg);
+  room.state = 'result';
   io.to(code).emit('votingResult', {
     playerId: room.currentPlayer,
     playerName: player ? player.name : '',
@@ -845,8 +904,12 @@ function endGame(code) {
   const room = rooms[code];
   if (!room) return;
   room.state = 'finished';
-  io.to(code).emit('gameEnded', { players: [...room.players].sort((a, b) => b.score - a.score) });
+  io.to(code).emit('gameEnded', {
+    players: [...room.players].sort((a, b) => b.score - a.score)
+  });
 }
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => { console.log(`ЕФІР сервер запущено на порту ${PORT}`); });
+server.listen(PORT, () => {
+  console.log(`ЕФІР сервер запущено на порту ${PORT}`);
+});
